@@ -1,0 +1,11 @@
+target/
+*.csv
+*.h5
+*.onnx
+*.parquet
+*.jsonl
+data/
+results/
+synth*/
+.venv/
+__pycache__/
