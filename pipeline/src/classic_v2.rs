@@ -80,6 +80,13 @@ pub struct ClassicCfg {
     /// v3: time-disjoint pieces of one radar share a main gap value
     /// (within this relative tolerance).
     pub gap_ratio_tol: f64,
+    /// v3: the beat step never joins groups whose pulses overlap in time
+    /// (a pulse starting while the other group's pulse is on air) beyond
+    /// this share — one transmitter cannot do that.
+    pub coh_max_overlap: f64,
+    /// v3: optional cap on the carrier gap (MHz) between two groups the beat
+    /// step may join (widest agile band expected). 0 = off.
+    pub coh_max_fgap_mhz: f64,
 }
 
 fn env_or<T: std::str::FromStr>(k: &str, d: T) -> T {
@@ -116,6 +123,8 @@ impl ClassicCfg {
             coll_max: env_or("CLASSIC_COLL_MAX", 0.02),
             rescue_min: env_or("CLASSIC_RESCUE_MIN", 200),
             gap_ratio_tol: env_or("CLASSIC_GAP_RATIO_TOL", 0.05),
+            coh_max_overlap: env_or("CLASSIC_COH_MAX_OVERLAP", 0.002),
+            coh_max_fgap_mhz: env_or("CLASSIC_COH_MAX_FGAP_MHZ", 0.0),
         }
     }
 }
@@ -431,9 +440,21 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
     // 1. cells — modulation interned to a small id, then a parallel fold of
     //    per-thread cell maps merged at the end (no String per pulse).
     let mut mod_ids: HashMap<String, i64> = HashMap::new();
+    // v3: a receiver without intra-pulse analysis reports no modulation at
+    // all; then every pulse is one "none" class instead of being skipped.
+    let no_mod = cfg.v3 && {
+        let known = pulses.iter().filter(|p| {
+            let m = norm_mod(&p.modulation);
+            !(m.is_empty() || m.starts_with("unk"))
+        });
+        (known.count() as f64) < 0.1 * pulses.len() as f64
+    };
     let pulse_mod: Vec<i64> = pulses
         .iter()
         .map(|p| {
+            if no_mod {
+                return 0;
+            }
             let m = norm_mod(&p.modulation);
             if m.is_empty() || m.starts_with("unk") {
                 return -1;
@@ -561,10 +582,52 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
                 // beat between two unrelated trains (e.g. 2116 µs vs 220 µs).
                 let c1 = coherence(&toas[*a], &toas[*b], cfg.coh_top, cfg.coh_samples, cfg.coh_min_pairs);
                 let c2 = coherence(&toas[*b], &toas[*a], cfg.coh_top, cfg.coh_samples, cfg.coh_min_pairs);
-                c1.max(c2) >= cfg.coh_thr && c1.min(c2) >= cfg.coh_min
+                if !(c1.max(c2) >= cfg.coh_thr && c1.min(c2) >= cfg.coh_min) {
+                    return false;
+                }
+                if cfg.v3 {
+                    if pulse_overlap(pulses, &groups[*a], &groups[*b]) > cfg.coh_max_overlap {
+                        return false;
+                    }
+                    if cfg.coh_max_fgap_mhz > 0.0 {
+                        let fq = |g: &Vec<usize>, q: f64| {
+                            let mut v: Vec<f64> = g.iter().map(|&i| pulses[i].freq_hz / 1e6).collect();
+                            quantile(&mut v, q)
+                        };
+                        let (a0, a1, b0, b1) = (fq(&groups[*a], 0.05), fq(&groups[*a], 0.95), fq(&groups[*b], 0.05), fq(&groups[*b], 0.95));
+                        if (a0 - b1).max(b0 - a1) > cfg.coh_max_fgap_mhz {
+                            return false;
+                        }
+                    }
+                }
+                true
             })
             .copied()
             .collect();
+        if std::env::var("CLASSIC_COH_DEBUG").is_ok() {
+            let st = |g: &Vec<usize>| {
+                let mut w: Vec<f64> = g.iter().map(|&i| pulses[i].duration_ns / 1e3).collect();
+                let mut bw: Vec<f64> = g.iter().map(|&i| pulses[i].bandwidth_hz / 1e6).collect();
+                let mut mc: HashMap<String, usize> = HashMap::new();
+                for &i in g {
+                    *mc.entry(norm_mod(&pulses[i].modulation)).or_default() += 1;
+                }
+                let m = mc.into_iter().max_by_key(|x| x.1).map(|x| x.0).unwrap_or_default();
+                (m, quantile(&mut w, 0.5), quantile(&mut bw, 0.5), g.len())
+            };
+            for (a, b) in &hits {
+                let (ma, wa, ba, na) = st(&groups[*a]);
+                let (mb, wb, bb, nb) = st(&groups[*b]);
+                let (r, fit, coll) = train_fit(pulses, &groups, &[*a, *b], cfg);
+                // overlap: B pulse starting while an A pulse is on air (or vice versa)
+                let ov = pulse_overlap(pulses, &groups[*a], &groups[*b]);
+                let fq = |g: &Vec<usize>, q: f64| { let mut v: Vec<f64> = g.iter().map(|&i| pulses[i].freq_hz / 1e6).collect(); quantile(&mut v, q) };
+                let pw_ = |g: &Vec<usize>| { let mut v: Vec<f64> = g.iter().map(|&i| pulses[i].power_dbm).collect(); quantile(&mut v, 0.5) };
+                let fgap = (fq(&groups[*a], 0.05) - fq(&groups[*b], 0.95)).max(fq(&groups[*b], 0.05) - fq(&groups[*a], 0.95)).max(0.0);
+                let dp = (pw_(&groups[*a]) - pw_(&groups[*b])).abs();
+                eprintln!("COH|{ma}|{mb}|{wa:.2}|{wb:.2}|{ba:.2}|{bb:.2}|{na}|{nb}|{r:.3}|{:.3}|{:.3}|{:.4}|{:.4}|{ov:.4}|{fgap:.1}|{dp:.2}", fit[0], fit[1], coll[0], coll[1]);
+            }
+        }
         for (a, b) in hits {
             uf.union(a, b);
         }
@@ -938,6 +1001,27 @@ fn train_fit(pulses: &[FlowPulse], groups: &[Vec<usize>], cand: &[usize], cfg: &
         }
     }
     (r, num.iter().zip(&den).map(|(n, d)| if *d > 0.0 { n / d } else { 0.0 }).collect(), coll)
+}
+
+/// Share of the smaller group's pulses that start while a pulse of the other
+/// group is still on air (TOA within the other's pulse width) — impossible
+/// for one transmitter.
+fn pulse_overlap(pulses: &[FlowPulse], ga: &[usize], gb: &[usize]) -> f64 {
+    let (small, big) = if ga.len() <= gb.len() { (ga, gb) } else { (gb, ga) };
+    let mut bt: Vec<(f64, f64)> = big.iter().map(|&i| (pulses[i].toa_ns, pulses[i].duration_ns)).collect();
+    bt.sort_unstable_by(|x, y| x.0.partial_cmp(&y.0).unwrap());
+    let mut hit = 0usize;
+    for &i in small {
+        let t = pulses[i].toa_ns;
+        let w = pulses[i].duration_ns;
+        let j = bt.partition_point(|x| x.0 <= t);
+        let prev_on = j > 0 && t - bt[j - 1].0 < bt[j - 1].1;
+        let next_on = j < bt.len() && bt[j].0 - t < w;
+        if prev_on || next_on {
+            hit += 1;
+        }
+    }
+    hit as f64 / small.len().max(1) as f64
 }
 
 fn regroup(groups: Vec<Vec<usize>>, uf: &mut Uf) -> Vec<Vec<usize>> {

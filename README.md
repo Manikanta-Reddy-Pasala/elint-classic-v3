@@ -52,3 +52,21 @@ Not solvable: two radars of the same type, both agile, no DOA (identical pulses)
 cargo build --release -p ai_processor --bin classic_eval
 cargo test --release -p ai_processor --lib classic_v2
 ```
+
+## Update 2: tested on data from other sources (no tuning on it)
+New v3 rules (physical, not tuned):
+- **Overlap veto** in the beat (coherence) step: never join two groups when a pulse of one starts while a pulse of the other is still on air (one transmitter cannot). All 6,775 correct joins in the 608 corpus have 0 overlap. `CLASSIC_COH_MAX_OVERLAP` (0.002).
+- **No modulation reported** (receiver without intra-pulse analysis, < 10 % pulses with a modulation): every pulse is one "none" class instead of being skipped (v2 found 0 radars in such a file).
+- Optional `CLASSIC_COH_MAX_FGAP_MHZ` (default 0 = off): widest agile band; set it from radar specs.
+- `classic_eval` reads real-capture format too (date-time TOA, `modulation` column, quoted fields) and prints DOA / carrier spread per group.
+
+| set | v2 | v3 |
+|---|---|---|
+| corpus 608 | 608/608 | 608/608 |
+| holdout 40 mixed files | 38/40 | 40/40 |
+| labeled files from other generators (2unk agile, anurag, MF-05, PSR-1vs2) | 5/10 | 7/10 (9/10 with FGAP cap 450) |
+| real pdw.csv (no modulation) | 0 radars | 8 radars (unlabeled) |
+
+Still open:
+- Two radars, same carrier, same modulation, PRI exactly 5:1, no overlap (anurag_PDWTable): not separable by timing/carrier/modulation.
+- **Real capture mf6 (DF receiver, unlabeled):** v3 makes some groups with DOA spread 125-280 deg = pulses from different directions mixed by rescue/join (they ignore angle). v2 groups keep tighter angles. Needs a DOA gate for real DF data and a labeled real capture to verify. Do not use v3 on real DF data until then.

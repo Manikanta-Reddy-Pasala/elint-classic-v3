@@ -33,6 +33,13 @@ for r in res:
             name_ok = name_ok and all(g["lib"] != kid or g["truth"].get("1", 0) >= 0.8 * g["n"] for g in ems)
         grp = stem.split("_")[0] if not stem.startswith(("agile", "hard")) else "_".join(stem.split("_")[:2])
         grp = grp + "_" + ("df" if "_df_" in stem else "omni")
+    elif name not in exp:
+        want = len(truth); lo = hi = want; name_ok = None
+        grp = os.path.basename(os.path.dirname(r["file"]))
+        if not truth:  # unlabeled real capture: report only
+            print(f"UNLABELED {name}: {r['pulses']} pulses -> {len(ems)} emitters, {r['ms']:.0f} ms;",
+                  ", ".join(f"{g['n']}p {g['fmode']} lib={g['lib']}" for g in sorted(ems, key=lambda g: -g['n'])[:12]))
+            continue
     else:
         x = exp[name]; want = int(x.get("no_emitters") or x.get("number_emitters")); sd = int(float(x["std_no_emitters"] or 0))
         lo, hi = want - sd, want + sd
