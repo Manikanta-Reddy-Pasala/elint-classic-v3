@@ -685,6 +685,7 @@ fn v3_rescue_and_join(
     sparse: Vec<usize>,
     cfg: &ClassicCfg,
 ) -> Vec<Vec<usize>> {
+    use rayon::prelude::*;
     let lw = (1.0 + cfg.pw_rel).ln();
     let key = |i: usize| {
         let p = &pulses[i];
@@ -730,7 +731,7 @@ fn v3_rescue_and_join(
         let m = mc.into_iter().max_by_key(|x| (x.1, -x.0)).map(|x| x.0).unwrap_or(-1);
         (m, quantile(&mut w, 0.5), quantile(&mut b, 0.05), quantile(&mut b, 0.95))
     };
-    let st: Vec<_> = groups.iter().map(stat).collect();
+    let st: Vec<_> = groups.par_iter().map(stat).collect();
     let mut uf = Uf::new(groups.len());
     for a in 0..groups.len() {
         for b in a + 1..groups.len() {
@@ -749,12 +750,16 @@ fn v3_rescue_and_join(
     for g in 0..groups.len() {
         sets.entry(uf.find(g)).or_default().push(g);
     }
-    let mut out: Vec<Vec<usize>> = Vec::new();
-    for (_, set) in sets {
+    // each candidate set is independent: decide in parallel, groups read-only;
+    // every decision is a list of group indices, assembled in set order below
+    let groups_ref = &groups;
+    let decide = |set: Vec<usize>| -> Vec<Vec<usize>> {
+        let groups = groups_ref;
+        let mut out: Vec<Vec<usize>> = Vec::new();
         let mut todo = vec![set];
         while let Some(mut cand) = todo.pop() {
             if cand.len() == 1 {
-                out.push(std::mem::take(&mut groups[cand[0]]));
+                out.push(vec![cand[0]]);
                 continue;
             }
             // base-gap check against the largest piece
@@ -798,13 +803,13 @@ fn v3_rescue_and_join(
                     cand.retain(|g| !off.contains(g));
                     todo.push(off);
                     if cand.len() == 1 {
-                        out.push(std::mem::take(&mut groups[cand[0]]));
+                        out.push(vec![cand[0]]);
                         continue;
                     }
                 }
             }
             loop {
-                let (r, fit, coll) = train_fit(pulses, &groups, &cand, cfg);
+                let (r, fit, coll) = train_fit(pulses, groups, &cand, cfg);
                 if std::env::var("CLASSIC_V3_DEBUG").is_ok() {
                     let sz: Vec<usize> = cand.iter().map(|g| groups[*g].len()).collect();
                     eprintln!("v3 cand sizes={sz:?} r={r:.3} fit={fit:.2?} coll={coll:.3?}");
@@ -817,11 +822,7 @@ fn v3_rescue_and_join(
                     .collect();
                 if keep.len() == cand.len() {
                     // one clean train: join every piece
-                    let mut j = Vec::new();
-                    for g in &cand {
-                        j.append(&mut groups[*g]);
-                    }
-                    out.push(j);
+                    out.push(cand.clone());
                     break;
                 }
                 if keep.len() <= 1 {
@@ -831,9 +832,9 @@ fn v3_rescue_and_join(
                         .max_by(|a, b| (coll[*a], -fit[*a]).partial_cmp(&(coll[*b], -fit[*b])).unwrap())
                         .unwrap();
                     let w = cand.remove(worst);
-                    out.push(std::mem::take(&mut groups[w]));
+                    out.push(vec![w]);
                     if cand.len() == 1 {
-                        out.push(std::mem::take(&mut groups[cand[0]]));
+                        out.push(vec![cand[0]]);
                         break;
                     }
                     continue;
@@ -842,6 +843,19 @@ fn v3_rescue_and_join(
                 todo.push(rest);
                 cand = keep;
             }
+        }
+        out
+    };
+    let sets: Vec<Vec<usize>> = sets.into_values().collect();
+    let decided: Vec<Vec<Vec<usize>>> = sets.into_par_iter().map(decide).collect();
+    let mut out: Vec<Vec<usize>> = Vec::new();
+    for lists in decided {
+        for l in lists {
+            let mut j = Vec::new();
+            for g in l {
+                j.append(&mut groups[g]);
+            }
+            out.push(j);
         }
     }
     out.retain(|g| !g.is_empty());

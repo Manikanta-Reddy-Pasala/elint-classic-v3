@@ -11,8 +11,26 @@ use std::time::Instant;
 
 fn main() -> anyhow::Result<()> {
     let cfg = ClassicCfg::from_env();
-    for path in std::env::args().skip(1) {
-        let f = std::fs::File::open(&path)?;
+    // files in parallel (EVAL_JOBS, default all cores); output kept in input order
+    let paths: Vec<String> = std::env::args().skip(1).collect();
+    let jobs: usize = std::env::var("EVAL_JOBS").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+    use rayon::prelude::*;
+    // EVAL_JOBS=1: files one after another; classic keeps all cores inside a file
+    let lines: Vec<anyhow::Result<String>> = if jobs == 1 {
+        paths.iter().map(|p| run_file(p, &cfg)).collect()
+    } else {
+        let pool = rayon::ThreadPoolBuilder::new().num_threads(jobs).build()?;
+        pool.install(|| paths.par_iter().map(|p| run_file(p, &cfg)).collect())
+    };
+    for l in lines {
+        println!("{}", l?);
+    }
+    Ok(())
+}
+
+fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
+    {
+        let f = std::fs::File::open(path)?;
         let mut lines = BufReader::new(f).lines();
         let head = lines.next().unwrap()?;
         let cols: Vec<String> = split_csv(&head);
@@ -60,7 +78,7 @@ fn main() -> anyhow::Result<()> {
             }
         }
         let t0 = Instant::now();
-        let em = detect(&pulses, &cfg);
+        let em = detect(&pulses, cfg);
         let ms = t0.elapsed().as_secs_f64() * 1e3;
         let mut out = Vec::new();
         for (lib, idx) in &em {
@@ -82,9 +100,8 @@ fn main() -> anyhow::Result<()> {
         for &e in &truth {
             *tt.entry(e).or_default() += 1;
         }
-        println!("{}", serde_json::json!({"file": path, "pulses": pulses.len(), "ms": ms, "truth_counts": tt, "emitters": out}));
+        Ok(serde_json::json!({"file": path, "pulses": pulses.len(), "ms": ms, "truth_counts": tt, "emitters": out}).to_string())
     }
-    Ok(())
 }
 
 /// Minimal CSV split: commas outside double quotes; quotes stripped.

@@ -70,3 +70,16 @@ New v3 rules (physical, not tuned):
 Still open:
 - Two radars, same carrier, same modulation, PRI exactly 5:1, no overlap (anurag_PDWTable): not separable by timing/carrier/modulation.
 - **Real capture mf6 (DF receiver, unlabeled):** v3 makes some groups with DOA spread 125-280 deg = pulses from different directions mixed by rescue/join (they ignore angle). v2 groups keep tighter angles. Needs a DOA gate for real DF data and a labeled real capture to verify. Do not use v3 on real DF data until then.
+
+## Update 3: parallelism
+- v3 join: candidate sets are decided in parallel (groups read-only, output assembled in the original order) -> identical results.
+- `classic_eval`: files run in parallel (`EVAL_JOBS`, default all cores; `EVAL_JOBS=1` = one file at a time with classic using all cores inside the file).
+- Checked: all 608 files, every group identical to the serial version, v2 and v3 modes; 608/608 both.
+
+Timing, Mac Studio (28 cores), 608 files / 59.3 M pulses:
+| | v2 | v3 |
+|---|---|---|
+| batch, files in parallel (wall) | 4.3 s | 4.0 s |
+| batch, one file at a time (wall) | 59 s | 66 s |
+| grouping per file, median | 9.3 ms | 12.8 ms (was 13.5) |
+Most of one-at-a-time wall time is CSV reading in the runner. Largest classic stage = cells (~5-6 ms, shared v2 code).
