@@ -4,8 +4,7 @@ Code only. No CSV / PDW data in this repo (see `.gitignore`).
 
 ## What it is
 `pipeline/` is the `ai_processor` crate (from `ai_elint`) with classic v3 added to
-`pipeline/src/classic_v2.rs`. Everything new is behind `CLASSIC_V3=1`; without it
-classic runs exactly as v2.
+`pipeline/src/classic_v2.rs`. **v3 is ON by default** (since update 4). `CLASSIC_V3=0` gives exact v2 behaviour.
 
 Handles every frequency mode on the "Frequency mode" slide:
 
@@ -83,3 +82,10 @@ Timing, Mac Studio (28 cores), 608 files / 59.3 M pulses:
 | batch, one file at a time (wall) | 59 s | 66 s |
 | grouping per file, median | 9.3 ms | 12.8 ms (was 13.5) |
 Most of one-at-a-time wall time is CSV reading in the runner. Largest classic stage = cells (~5-6 ms, shared v2 code).
+
+## Update 4: v3 on by default
+- `CLASSIC_V3` default = 1. Set `CLASSIC_V3=0` for exact v2 behaviour (checked: identical groups on all 608 files).
+- ONNX engine not affected: ONNX uses only `ClassicCfg` beat settings + `same_clock()` (optional ONNX_CLOCK_MERGE); those functions and defaults are byte-identical to the box version. Only `classic_v2.rs` changed (+ new `bin/classic_eval.rs`).
+- Tests, original box code vs this code (Apple Silicon, ARM shim on both): lib 53/53 -> 56/56 (+3 v3 tests), tests/unit.rs (ONNX, inference, global match, hdbscan, db helpers) 80/80 = 80/80, parallel_clustering 3/3 = 3/3.
+- 608 files: default (v3) 608/608, CLASSIC_V3=0 608/608.
+- Reminder: on the real DF capture (mf6) v3 mixed directions in some groups (see update 2). If real DF data looks wrong, set CLASSIC_V3=0.

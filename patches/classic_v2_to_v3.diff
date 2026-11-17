@@ -1,11 +1,12 @@
 --- a/pipeline/src/classic_v2.rs
 +++ b/pipeline/src/classic_v2.rs
-@@ -55,6 +55,38 @@
+@@ -55,6 +55,39 @@
      pub pri_min_gap_us: f64,
      /// Time slices with fewer pulses are folded into their neighbour.
      pub min_slice: usize,
 +    /// v3 (frequency-agile support): rescue sparse cells + join pieces
-+    /// that form one clean pulse train + span-checked naming. Off = v2.
++    /// that form one clean pulse train + span-checked naming.
++    /// Default ON; CLASSIC_V3=0 = exact v2 behaviour.
 +    pub v3: bool,
 +    /// v3: gap histogram bin width (relative, log scale) and top-k bins.
 +    pub reg_bin_rel: f64,
@@ -39,11 +40,11 @@
  }
  
  fn env_or<T: std::str::FromStr>(k: &str, d: T) -> T {
-@@ -80,6 +112,19 @@
+@@ -80,6 +113,19 @@
              cluster_sec: env_or("CLASSIC_CLUSTER_SEC", 1.0),
              pri_min_gap_us: env_or("CLASSIC_PRI_MIN_GAP_US", 1.0),
              min_slice: env_or("CLASSIC_MIN_SLICE", 50),
-+            v3: env_or("CLASSIC_V3", 0) == 1,
++            v3: env_or("CLASSIC_V3", 1) == 1,
 +            reg_bin_rel: env_or("CLASSIC_REG_BIN_REL", 0.01),
 +            reg_top: env_or("CLASSIC_REG_TOP", 8),
 +            reg_min: env_or("CLASSIC_REG_MIN", 0.25),
@@ -59,7 +60,7 @@
          }
      }
  }
-@@ -202,6 +247,15 @@
+@@ -202,6 +248,15 @@
      pw_max_ge: Option<f64>,
      lfm_ge: Option<f64>,
      pri_lt: Option<f64>,
@@ -75,7 +76,7 @@
  }
  
  #[derive(serde::Deserialize, Debug, Clone)]
-@@ -235,7 +289,7 @@
+@@ -235,7 +290,7 @@
  
  /// Library id from measured group features (no labels, no generator PRI).
  /// Rules come from the naming table, checked top to bottom; first match wins.
@@ -84,7 +85,7 @@
      let f_mhz = mode_bin(ps.iter().map(|p| (p.freq_hz / 1e5).round() as i64))? as f64 / 10.0;
      let bw_mhz = mode_bin(ps.iter().map(|p| (p.bandwidth_hz / 1e5).round() as i64)).unwrap_or(0) as f64 / 10.0;
      let lib = library_table();
-@@ -246,10 +300,47 @@
+@@ -246,10 +301,47 @@
      let mut pw_max: Option<f64> = None;
      let mut lfm: Option<f64> = None;
      let mut pri: Option<f64> = None;
@@ -134,7 +135,7 @@
          if let Some(v) = r.pw_max_ge {
              let x = *pw_max.get_or_insert_with(|| {
                  let mut pw: Vec<f64> = ps.iter().map(|p| p.duration_ns / 1e3).collect();
-@@ -279,6 +370,67 @@
+@@ -279,6 +371,67 @@
      None
  }
  
@@ -202,7 +203,7 @@
  /// Group pulses into emitters. Returns (emitter key, pulse indices) where
  /// the key is `Some(library id)` or `None` for an unknown emitter.
  pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<usize>)> {
-@@ -288,9 +440,21 @@
+@@ -288,9 +441,21 @@
      // 1. cells — modulation interned to a small id, then a parallel fold of
      //    per-thread cell maps merged at the end (no String per pulse).
      let mut mod_ids: HashMap<String, i64> = HashMap::new();
@@ -224,7 +225,7 @@
              let m = norm_mod(&p.modulation);
              if m.is_empty() || m.starts_with("unk") {
                  return -1;
-@@ -327,6 +491,11 @@
+@@ -327,6 +492,11 @@
          debug!("classic_v2: sample pulse {:?}", p);
      }
      let n_cells_all = cells.len();
@@ -236,7 +237,7 @@
      cells.retain(|_, v| v.len() >= cfg.min_cell);
      debug!("classic_v2: {} cells, {} with >= {} pulses", n_cells_all, cells.len(), cfg.min_cell);
      emit_dur("classic.cells", t.elapsed());
-@@ -413,10 +582,52 @@
+@@ -413,10 +583,52 @@
                  // beat between two unrelated trains (e.g. 2116 µs vs 220 µs).
                  let c1 = coherence(&toas[*a], &toas[*b], cfg.coh_top, cfg.coh_samples, cfg.coh_min_pairs);
                  let c2 = coherence(&toas[*b], &toas[*a], cfg.coh_top, cfg.coh_samples, cfg.coh_min_pairs);
@@ -290,7 +291,7 @@
          for (a, b) in hits {
              uf.union(a, b);
          }
-@@ -427,6 +638,15 @@
+@@ -427,6 +639,15 @@
      emit_dur("classic.coherence", t.elapsed());
      t = Instant::now();
  
@@ -306,7 +307,7 @@
      // 5. naming; one emitter per library id
      let mut known: BTreeMap<i64, Vec<usize>> = BTreeMap::new();
      let mut out: Vec<(Option<i64>, Vec<usize>)> = Vec::new();
-@@ -434,7 +654,7 @@
+@@ -434,7 +655,7 @@
          .par_iter()
          .map(|g| {
              let ps: Vec<&FlowPulse> = g.iter().map(|&i| &pulses[i]).collect();
@@ -315,10 +316,12 @@
          })
          .collect();
      for (g, name) in groups.into_iter().zip(names) {
-@@ -449,6 +669,375 @@
+@@ -447,8 +668,377 @@
+     res.extend(out);
+     emit_dur("classic.naming", t.elapsed());
      res
- }
- 
++}
++
 +/// v3 step A + B.
 +/// A. Pulses from sparse cells (an agile radar spreads thin over 1 MHz cells)
 +///    are regrouped on (modulation, PW, BW) only, ignoring the carrier.
@@ -510,8 +513,8 @@
 +    }
 +    out.retain(|g| !g.is_empty());
 +    out
-+}
-+
+ }
+ 
 +/// v3 step C: two radars of the same type (same pulses, both agile) are one
 +/// group after the timing steps; with a direction finder their angles still
 +/// differ. Split a group only when its DOA histogram (5 deg bins) holds two
@@ -691,7 +694,7 @@
  fn regroup(groups: Vec<Vec<usize>>, uf: &mut Uf) -> Vec<Vec<usize>> {
      let mut m: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
      for (i, g) in groups.into_iter().enumerate() {
-@@ -525,6 +1114,74 @@
+@@ -525,6 +1115,74 @@
  mod tests {
      use super::*;
  

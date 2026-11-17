@@ -56,7 +56,8 @@ pub struct ClassicCfg {
     /// Time slices with fewer pulses are folded into their neighbour.
     pub min_slice: usize,
     /// v3 (frequency-agile support): rescue sparse cells + join pieces
-    /// that form one clean pulse train + span-checked naming. Off = v2.
+    /// that form one clean pulse train + span-checked naming.
+    /// Default ON; CLASSIC_V3=0 = exact v2 behaviour.
     pub v3: bool,
     /// v3: gap histogram bin width (relative, log scale) and top-k bins.
     pub reg_bin_rel: f64,
@@ -112,7 +113,7 @@ impl ClassicCfg {
             cluster_sec: env_or("CLASSIC_CLUSTER_SEC", 1.0),
             pri_min_gap_us: env_or("CLASSIC_PRI_MIN_GAP_US", 1.0),
             min_slice: env_or("CLASSIC_MIN_SLICE", 50),
-            v3: env_or("CLASSIC_V3", 0) == 1,
+            v3: env_or("CLASSIC_V3", 1) == 1,
             reg_bin_rel: env_or("CLASSIC_REG_BIN_REL", 0.01),
             reg_top: env_or("CLASSIC_REG_TOP", 8),
             reg_min: env_or("CLASSIC_REG_MIN", 0.25),
