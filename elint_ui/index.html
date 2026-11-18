@@ -83,7 +83,7 @@ input[type=text],input[type=number]{border-radius:0;background:#fff}
       <label>Y axis <select id="d_y"><option value="3">frequency (MHz)</option><option value="4">pulse width (µs)</option><option value="5">direction (°)</option></select></label>
       <span id="d_msg" class="mut"></span>
     </div>
-    <p class="mut" style="margin:4px 0;font-size:12px" id="d_src"><b>CSV reading is never timed, for any engine.</b> Rust ONNX and Rust classic: the CSV is first loaded into the database (ClickHouse signals.pdw, not timed), then the engine reads the pulses from the database (timed). Python reads the CSV itself with pandas (not timed). Each panel shows both numbers.</p>
+    <p class="mut" style="margin:4px 0;font-size:12px" id="d_src"><b>CSV reading is never timed, for any engine.</b> Rust ONNX and Rust classic: the CSV is first loaded into the database (ClickHouse signals.pdw, not timed), then the engine reads the pulses from the database (timed). Each panel shows both numbers.</p>
     <p style="margin:8px 0 2px"><b>Input pulses</b> <span class="mut">(colour = true radar from the generator; the engines never see this)</span></p>
     <canvas id="d_in"></canvas>
     <div class="leg" id="d_inleg"></div>
@@ -109,7 +109,6 @@ input[type=text],input[type=number]{border-radius:0;background:#fff}
   <section class="card">
     <h2>2 · Engine</h2>
     <div class="row">
-      <label><input type="checkbox" id="e_python"> Python (reference, ONNX model in-process)</label>
       <label><input type="checkbox" id="e_classic" checked> Rust classic (rules, no model)</label>
       <label><input type="checkbox" id="e_onnx"> Rust ONNX (model service, GPU + CPU)</label>
     </div>
@@ -127,7 +126,7 @@ input[type=text],input[type=number]{border-radius:0;background:#fff}
       <th>file</th><th>engine</th><th>expected</th><th>found emitters</th><th>match</th><th>signals</th><th>clusters</th>
       <th>pulses in clusters</th><th>pipeline ms</th><th>db read</th><th>detect / model</th><th>db writes</th><th>CPU peak</th><th>GPU peak</th><th>rc</th></tr></thead>
       <tbody></tbody></table></div>
-    <p class="mut" style="font-size:12px">Python can take ~1 min per file (608-file run: Python ~64 s, Rust ONNX ~6 s, Rust classic ~0.1 s median). pipeline = DB read → engine → result writes (CSV loading is setup and not counted). Click a row for per-emitter details and every layer time.</p>
+    <p class="mut" style="font-size:12px">608-file run on the box: Rust ONNX ~6 s, Rust classic ~0.1 s median per file. pipeline = DB read → engine → result writes (CSV loading is setup and not counted). Click a row for per-emitter details and every layer time.</p>
   </section>
   </details>
 </main>
@@ -144,8 +143,8 @@ async function init(){
   $('#svc').className='pill '+(ok?'ok':'bad');
   browse(c.data_dir); hw(); demoInit();
 }
-const ENGN={python:'Python',classic:'Rust classic',onnx:'Rust ONNX'};
-const ECOL={python:'#888888',onnx:'#2e8540',classic:'#1a55c4'};
+const ENGN={classic:'Rust classic',onnx:'Rust ONNX'};
+const ECOL={onnx:'#2e8540',classic:'#1a55c4'};
 const PAL=['#1a55c4','#d9480f','#2f9e44','#7048e8','#e8a600','#0c8599','#d6336c','#5c940d','#862e9c','#c92a2a','#1098ad','#f76707','#364fc7','#a61e4d','#087f5b','#e67700','#495057','#74b816','#9c36b5','#0b7285'];
 const LIB={1104:"PSR1",1105:"PSR2",1106:"PSR3",1107:"PSR4",1108:"PSR5m1",1109:"MF04",1113:"MF03",1116:"PSR5m2",1117:"MF06"};
 const KC={1113:"#1a55c4",1105:"#d9480f",1109:"#2f9e44",1104:"#7048e8",1106:"#0c8599",1107:"#862e9c",1108:"#5c940d",1116:"#364fc7",1117:"#a61e4d"};
@@ -209,7 +208,7 @@ async function showRes(r){
 }
 function csvLine(r){const L=r.layers||{}, c=L.load_csv, d=L.db_read;
   if(c==null)return '';
-  return r.engine==='python'?`<br>CSV read (pandas): ${fmtT(c)} <i>not timed</i>`:`<br>CSV → database: ${fmtT(c)} <i>not timed</i> · read from database: ${fmtT(d)} <i>timed</i>`}
+  return `<br>CSV → database: ${fmtT(c)} <i>not timed</i> · read from database: ${fmtT(d)} <i>timed</i>`}
 function bars(){
   const v=Object.values(dRes).map(r=>r.pipeline_ms||0), mx=Math.max(...v,1);
   Object.values(dRes).forEach(r=>{$('#db_'+r.engine).style.width=Math.max(0.5,100*(r.pipeline_ms||0)/mx)+'%'});
@@ -226,7 +225,7 @@ function drawAll(){
 }
 async function runDemo(){
   if(!preset)return;
-  const order=['classic','onnx','python'].filter(e=>preset.engines.includes(e));
+  const order=['classic','onnx'].filter(e=>preset.engines.includes(e));
   order.forEach(e=>{delete dRes[e]; $('#dt_'+e).textContent='waiting'; $('#dr_'+e).textContent='queued'; $('#dl_'+e).innerHTML=''; $('#db_'+e).style.width='0'});
   $('#d_speed').textContent=''; drawAll();
   const r=await api('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'run',path:preset.file,engines:order})});
@@ -267,7 +266,7 @@ async function browse(p){
 document.querySelectorAll('input[name=src]').forEach(r=>r.onchange=()=>{$('#pathbox').style.display=r.value==='db'&&r.checked?'none':''});
 async function start(action){
   const src=document.querySelector('input[name=src]:checked').value;
-  const engines=[...(($('#e_python').checked)?['python']:[]),...(($('#e_classic').checked)?['classic']:[]),...(($('#e_onnx').checked)?['onnx']:[])];
+  const engines=[...(($('#e_classic').checked)?['classic']:[]),...(($('#e_onnx').checked)?['onnx']:[])];
   const body={action:src==='db'?'db':action,path:$('#path').value,engines,limit:+$('#limit').value};
   const r=await api('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(r.error){$('#msg').textContent=r.error;return}
@@ -288,8 +287,8 @@ function match(r){if(r.action==='load')return 'loaded';if(r.count_ok===undefined
   parts.push(r.count_ok?'<span class="ok">count ✓</span>':'<span class="bad">count ✗</span>');return parts.join(' ')}
 function found(r){if(!r.emitters)return '';const c={};r.emitters.forEach(n=>c[n]=(c[n]||0)+1);
   return r.emitters.length+' · '+Object.entries(c).map(([n,k])=>k>1?`${n}×${k}`:n).join(', ')}
-function core(r){const L=r.layers||{};return r.engine==='python'?(L['py.model']??''):r.engine==='onnx'?(L['onnx.total_wall']??''):(L['classic.detect_total']??'')}
-const ENG={python:'Python',classic:'Rust classic',onnx:'Rust ONNX'};
+function core(r){const L=r.layers||{};return r.engine==='onnx'?(L['onnx.total_wall']??''):(L['classic.detect_total']??'')}
+const ENG={classic:'Rust classic',onnx:'Rust ONNX'};
 function render(rows){
   const tb=$('#res tbody'); tb.innerHTML='';
   rows.forEach(r=>{

@@ -26,21 +26,15 @@ from urllib.parse import parse_qs, urlparse
 import psycopg2
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-BIN = os.environ.get("AI_PROCESSOR", os.path.expanduser("~/coderepo/ai_elint/target/release/ai_processor"))
-DATA_DIR = os.environ.get("DATA_DIR", os.path.expanduser("~/coderepo/ai_elint/data"))
+REPO = os.path.dirname(HERE)
+BIN = os.environ.get("AI_PROCESSOR", os.path.join(REPO, "target", "release", "ai_processor"))
+DATA_DIR = os.environ.get("DATA_DIR", os.path.join(REPO, "data"))
 EXPECTED = os.environ.get("EXPECTED_JSON", os.path.join(HERE, "expected_results.json"))
 PG_URL = os.environ.get("PG_URL", "postgresql://elint:elint@127.0.0.1:15432/sigint")
 CH_URL = os.environ.get("CH_URL", "http://127.0.0.1:18123")
 ONNX_URL = os.environ.get("ONNX_URL", "http://127.0.0.1:8000")
 PORT = int(os.environ.get("UI_PORT", "8800"))
 RESULTS_LOG = os.environ.get("RESULTS_LOG", os.path.join(HERE, "results.jsonl"))
-# Python master (reference) — run through elint_reports/tools/py_time_run.py in
-# its own venv, on its own databases (sigint_py / signals_py) so it never
-# touches the Rust engines' tables.
-PY_DIR = os.environ.get("PY_DIR", os.path.expanduser("~/coderepo/ai_elint_python_master/integration"))
-PY_BIN = os.environ.get("PY_BIN", os.path.join(PY_DIR, "venv/bin/python"))
-PY_RUN = os.environ.get("PY_RUN", os.path.expanduser("~/coderepo/elint_reports/tools/py_time_run.py"))
-PY_PG_URL = os.environ.get("PY_PG_URL", "postgresql://elint:elint@127.0.0.1:15432/sigint_py")
 
 try:
     EXPECTED_MAP = json.load(open(EXPECTED))
@@ -105,42 +99,9 @@ def snapshot(pg_url=PG_URL):
     return snap
 
 
-def run_python(item):
-    """Python master on one CSV (reads the CSV itself, writes sigint_py)."""
-    path = item["path"]
-    out = os.path.join(HERE, "logs", f"py_{uuid.uuid4().hex[:8]}.json")
-    os.makedirs(os.path.dirname(out), exist_ok=True)
-    env = dict(os.environ, PY_PG_DB="sigint_py", PY_CH_DB="signals_py")
-    t0 = time.perf_counter()
-    p = subprocess.run([PY_BIN, PY_RUN, path, out], cwd=PY_DIR, env=env,
-                       capture_output=True, text=True, timeout=3600)
-    wall = time.perf_counter() - t0
-    res = {"file": os.path.basename(path), "path": path, "engine": "python", "action": "run",
-           "rc": p.returncode, "wall_s": round(wall, 2), "layers": {},
-           "finished": time.strftime("%Y-%m-%d %H:%M:%S")}
-    if p.returncode != 0 or not os.path.exists(out):
-        res["rc"] = p.returncode or -1
-        res["error"] = (p.stderr or p.stdout)[-1500:]
-        return res
-    summ = json.load(open(out))
-    os.remove(out)
-    res["layers"] = {k: v for k, v in summ.get("layers_ms", {}).items()}
-    res["pipeline_ms"] = res["layers"].get("py.pipeline")
-    res.update(snapshot(PY_PG_URL))
-    return res
-
 
 def _run_one(job, item):
     engine, path, action = item["engine"], item.get("path"), item["action"]
-    if engine == "python":
-        res = run_python(item)
-        e = EXPECTED_MAP.get(res["file"])
-        if e and res["rc"] == 0:
-            res["expected"] = {"emitters": e["exp_em"], "names": e.get("expected_names"), "ids": e.get("expected_ids")}
-            res["count_ok"] = len(res["emitters"]) == e["exp_em"]
-            if e["kind"] == "known":
-                res["names_ok"] = all(i in res["emitters"] for i in e["expected_ids"])
-        return res
     args = [BIN]
     if action == "db":
         args.append("--from-db")
@@ -260,9 +221,9 @@ PRESETS = [
     {"id": 1, "title": "Compare 1 · big file", "file": KNOWN_DIR + "mf03_psr2_best-3_plus3.csv",
      "engines": ["onnx", "classic"],
      "story": "185k pulses, 2 known radars (MF03, PSR2) + 3 unknown radars. Rust ONNX vs Rust classic."},
-    {"id": 2, "title": "Compare 2 · all three engines", "file": KNOWN_DIR + "mf03_mf04_best-10_plus2.csv",
-     "engines": ["python", "onnx", "classic"],
-     "story": "24k pulses, 2 known radars (MF03, MF04) + 2 unknown. Python vs Rust ONNX vs Rust classic (Python ~15 s)."},
+    {"id": 2, "title": "Compare 2 · medium file", "file": KNOWN_DIR + "mf03_mf04_best-10_plus2.csv",
+     "engines": ["onnx", "classic"],
+     "story": "24k pulses, 2 known radars (MF03, MF04) + 2 unknown. Rust ONNX vs Rust classic."},
     {"id": 3, "title": "Compare 3 · easy file", "file": KNOWN_DIR + "mf03_mf04_best-0_plus0.csv",
      "engines": ["onnx", "classic"],
      "story": "105k pulses, 2 known radars only. Both engines are right; only the time differs."},
@@ -310,9 +271,8 @@ def _ch(sql):
 def plot_labels(engine, path):
     """Label the sampled pulses with the emitter the engine put them in (read right after the run)."""
     smp = csv_sample(path)
-    py = engine == "python"
-    keys = [r[1] if py else r[0] for r in smp["rows"]]
-    ch_db, pg = ("signals_py", PY_PG_URL) if py else ("signals", PG_URL)
+    keys = [r[0] for r in smp["rows"]]
+    ch_db, pg = "signals", PG_URL
     pulse_cluster = {}
     uniq = sorted(set(keys))
     for i in range(0, len(uniq), 3000):
@@ -455,11 +415,10 @@ class H(BaseHTTPRequestHandler):
         if urlparse(self.path).path != "/api/run":
             return self._json({"error": "not found"}, 404)
         body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
-        engines = [e for e in body.get("engines", []) if e in ("python", "classic", "onnx")]
+        engines = [e for e in body.get("engines", []) if e in ("classic", "onnx")]
         action = body.get("action", "run")          # run | load | db
         if action == "db":
-            # Python master reads the CSV itself; it has no from-database mode
-            items = [{"engine": e, "action": "db"} for e in engines if e != "python"]
+            items = [{"engine": e, "action": "db"} for e in engines]
         else:
             path = body.get("path", "")
             if not os.path.exists(path):
