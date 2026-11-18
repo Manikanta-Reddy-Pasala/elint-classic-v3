@@ -11,8 +11,19 @@ use std::time::Instant;
 use rayon::prelude::*;
 use tracing::info;
 
+// AVX-512 only exists on x86_64; other CPUs (e.g. Apple Silicon) use the scalar path.
+#[cfg(target_arch = "x86_64")]
+fn has_avx512() -> bool { std::is_x86_feature_detected!("avx512f") }
+#[cfg(not(target_arch = "x86_64"))]
+fn has_avx512() -> bool { false }
+#[cfg(not(target_arch = "x86_64"))]
+unsafe fn dot1024_avx512(_a: &[f32], _b: &[f32]) -> f32 { unreachable!() }
+#[cfg(not(target_arch = "x86_64"))]
+unsafe fn mv_dot1024_avx512(_q: &[f32], _m: &[f32], _n: usize, _o: &mut [f32]) { unreachable!() }
+
 /// 1024-dim f32 dot product using AVX-512: 16 floats per 512-bit lane,
 /// 80 iterations, one FMA per iteration, single horizontal reduce at the end.
+#[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "avx512f")]
 #[inline(never)]
 unsafe fn dot1024_avx512(a: &[f32], b: &[f32]) -> f32 {
@@ -46,6 +57,7 @@ unsafe fn dot1024_avx512(a: &[f32], b: &[f32]) -> f32 {
 ///
 /// Requires AVX-512 (runtime-checked by the caller via `use_avx`).
 /// Results differ from `dot1024_avx512` by at most a couple of ULPs.
+#[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "avx512f")]
 #[inline(never)]
 unsafe fn mv_dot1024_avx512(q: &[f32], m: &[f32], n_rows: usize, out: &mut [f32]) {
@@ -170,7 +182,7 @@ pub fn dot_generic(a: &[f32], b: &[f32]) -> f32 {
 #[inline(never)]
 pub fn dot(a: &[f32], b: &[f32]) -> f32 {
     if a.len() == b.len() && a.len() == 1024
-        && std::is_x86_feature_detected!("avx512f")
+        && has_avx512()
     {
         unsafe { dot1024_avx512(a, b) }
     } else {
@@ -277,7 +289,7 @@ pub fn hdbscan_impl(
     let t_knn = Instant::now();
     // Hoist the AVX-512 runtime check out of the per-pair hot loop
     // (it used to run once per distance).
-    let use_avx = dim == 1024 && std::is_x86_feature_detected!("avx512f");
+    let use_avx = dim == 1024 && has_avx512();
     let dot2 = |a: &[f32], b: &[f32]| -> f32 {
         if use_avx {
             unsafe { dot1024_avx512(a, b) }
@@ -548,7 +560,7 @@ pub fn hdbscan_impl(
     info!(
         "TIMING [hdbscan] flat={:.1}ms knn={:.1}ms mode={} (n={} dim={} k={} threads={} dot=avx512:{})",
         t_flat_ms, t_knn_ms, knn_mode, n_eff, dim, k, n_threads,
-        dim == 1024 && std::is_x86_feature_detected!("avx512f")
+        dim == 1024 && has_avx512()
     );
 
     // Cosine reachability HDBSCAN-style.

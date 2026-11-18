@@ -68,7 +68,7 @@ dfmix*/
 primix*/
 unseen*/
 
-# elint.sh runtime state (pids, logs, judge output) and local venvs
+# run.sh runtime state (pids, logs, results) and local venvs
 .run/
 onnx_model_service/.gpu
 onnx_model_service/model/
