@@ -74,14 +74,14 @@ def target(rng, kind):
     return dict(t=t, f=(f0 + rng.normal(0, 0.1, n)) * 1e6, pw=spec["pw"] * 1e3 * (1 + rng.normal(0, 0.01, n)),
                 bw=np.maximum(spec["bw"] + rng.normal(0, 0.2, n), 0.05) * 1e6, doa=rng.uniform(0, 360, n),
                 pwr=rng.uniform(-80, -60) + rng.normal(0, 0.4, n), mod=np.full(n, spec["mod"]),
-                pri=np.full(n, lab["pri_us"] * 1e3), id=np.full(n, 1), mode="fixed", spec=spec), lab
+                pri=np.full(n, lab["pri_us"] * 1e3), id=np.full(n, 1), src=np.full(n, "omni"), mode="fixed", spec=spec), lab
 
 
 def dup(e, rng):
     """Second receiver: copy of every other pulse, +0.1..0.6 us."""
     sel = np.arange(len(e["t"])) % 2 == 0
     out = dict(e)
-    for k in ["t", "f", "pw", "bw", "doa", "pwr", "mod", "pri", "id"]:
+    for k in ["t", "f", "pw", "bw", "doa", "pwr", "mod", "pri", "id", "src"]:
         extra = e[k][sel] + rng.uniform(0.1, 0.6, sel.sum()) if k == "t" else e[k][sel]
         out[k] = np.concatenate([e[k], extra])
     return out

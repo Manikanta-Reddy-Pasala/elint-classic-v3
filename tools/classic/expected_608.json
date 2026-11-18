@@ -1,0 +1,4546 @@
+{
+"cta1_cta2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "0"
+},
+"cta1_cta2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "0"
+},
+"cta1_cta2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "0"
+},
+"cta1_cta2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "0"
+},
+"cta1_cta2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_cta2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta1_nav3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"cta2_nav3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_mf04_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_mf04_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1109",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr4_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr4_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf03_psr5m2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf03_psr5m2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1113",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1104",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr4_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr4_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"mf04_psr5m2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"mf04_psr5m2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1109",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav1_nav3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "2",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "4",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "5",
+"std_no_emitters": "1"
+},
+"nav2_nav3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"number_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1105",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr4_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr4_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr1_psr5m2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr1_psr5m2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1104",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr3_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr3_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1106",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr4_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr4_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr2_psr5m2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr2_psr5m2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1105",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr4_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr4_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1107",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr3_psr5m2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr3_psr5m2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1106",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m1_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m1_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1108",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr4_psr5m2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr4_psr5m2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1107",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-0_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-0_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-0_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-0_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-10_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-10_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-10_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-10_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-3_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-3_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-3_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-3_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-6_plus0.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "2",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-6_plus2.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "4",
+"std_no_emitters": "0"
+},
+"psr5m1_psr5m2_best-6_plus3.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "5",
+"std_no_emitters": "1"
+},
+"psr5m1_psr5m2_best-6_plus5.csv": {
+"emitter_1_id_csv": "1",
+"emitter_2_id_csv": "2",
+"emitter_id_1": "1108",
+"emitter_id_2": "1116",
+"no_emitters": "7",
+"std_no_emitters": "1"
+}
+}
