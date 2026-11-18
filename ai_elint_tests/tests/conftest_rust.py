@@ -30,8 +30,8 @@ def _run_rust_engine(csv_file_path: str, source: str = "omni", timeout: int = 60
     env = os.environ.copy()
     env.update(
         {
-            "PG_URL": f"postgresql://elint:elint@127.0.0.1:15432/sigint",
-            "CH_URL": f"http://127.0.0.1:18123",
+            "PG_URL": os.environ.get("PG_URL", "postgresql://elint:elint@127.0.0.1:15432/sigint"),
+            "CH_URL": os.environ.get("CH_URL", "http://127.0.0.1:18123"),
             "ONNX_PATH": "/home/sysadm/models/transformer_model_known_v16.onnx",
             # RUST_ENGINE=classic (default) | onnx  — onnx needs ONNX_URL (model service)
             "CLASSIC": "0" if os.environ.get("RUST_ENGINE", "classic") == "onnx" else "1",

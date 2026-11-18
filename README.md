@@ -1,4 +1,64 @@
-> **Classic v3 (2026-11-18):** this copy = the v2 version + classic v3 changes. What changed, engines, results: see `CHANGES_2026-11-18.md`. How to test: `TESTING.md`.
+# ELINT — how to use and test (Classic v3 / Classic v2 / ONNX)
+
+One script does everything: `./elint.sh` (run it with no arguments for help).
+
+## What you need
+| Item | Where it goes |
+|---|---|
+| Rust (`cargo`), `python3` (+ venv), `docker` | installed on the machine |
+| PDW CSV files | `data/pdw_generator/known_emitters/` and `unknown_emitters/` (or `DATA=/path`) |
+| ONNX model `transformer_model_known_v16.onnx` (FP32, not int8) | `model/` (or `MODEL_FILE=/path`) |
+| Test-judge expected results (`ai_elint_tests/tests/test_data/*.csv`, from the box) | `ai_elint_tests/tests/test_data/` (or `EXPECTED_DIR=/path`) — judge only |
+
+## Steps
+```bash
+./elint.sh setup        # build Rust, model-service venv (GPU on the box, else CPU), UI venv, judge image
+./elint.sh start        # Postgres + ClickHouse (docker) + ONNX model service + UI -> prints http://<ip>:8800
+./elint.sh run data/pdw_generator/known_emitters/mf03_mf04_best-0_plus2.csv classic   # or v2 / onnx
+./elint.sh stop         # stops model service + UI (databases keep running, data kept)
+```
+
+## Test
+| What | Command | Needs | Expect |
+|---|---|---|---|
+| Classic accuracy, 608 files, v3 + v2 | `./elint.sh selftest quick` | CSVs only | `TOTAL 608 608` twice |
+| + synthetic freq-mode and PRI sets | `./elint.sh selftest` | + numpy | 80 / 79 of 86, PRI 60/60 |
+| One file, any engine | `./elint.sh run <csv> classic\|v2\|onnx` | `start` | emitters table (saved in `.run/results/`) |
+| Test judge (pytest), all 608 | `./elint.sh judge classic` (or `v2`, `onnx`) | `start` + expected CSVs | box: classic 608/608, ONNX 602/608 |
+| Test judge, some files | `./elint.sh judge classic "mf03_mf04_best-0_plus2 or psr2"` | same | |
+| UI | open the URL from `start`; Classic / ONNX buttons | `start` | |
+
+## Engines
+| Setting | Engine |
+|---|---|
+| `CLASSIC` unset or `0` | ONNX (needs the model service, `ONNX_URL`, default `http://127.0.0.1:8000`) |
+| `CLASSIC=1` | **Classic v3 (standard)** |
+| `CLASSIC=1 CLASSIC_V3=0` | Classic v2 (fallback for real direction-finder data) |
+
+## Databases
+- Default: local docker containers `elint_pg` (:15432) and `elint_ch` (:18123 / :19000), created once and reused.
+- Your own databases: `DB_MODE=external PG_HOST=.. PG_PORT=.. PG_USER=.. PG_PASS=.. CH_HOST=.. CH_PORT=.. CH_NPORT=.. ./elint.sh start`
+- Another Postgres database: `PG_DB=mytest ./elint.sh start` (created with the right schema if missing; others untouched).
+- Nothing is deleted unless you ask: `stop` keeps data, `stop db` stops the containers (data kept),
+  only `./elint.sh clean --yes` removes the docker containers and their data.
+- Each `ai_processor --csv` run replaces the previous results in the database it uses (same as v2; the judge needs it).
+  Use another `PG_DB` to keep results; `./elint.sh run` also keeps a copy in `.run/results/`.
+- Schemas: `postgres/engine_schema.sql` and `clickhouse/engine_schema.sql` (the old `postgres/init`, `clickhouse/init`
+  have integer ids / old columns and make the engine fail on a fresh database).
+- Ports, names and paths: `PG_PORT CH_PORT CH_NPORT MODEL_PORT UI_PORT PG_NAME CH_NAME DATA MODEL_FILE EXPECTED_DIR`.
+
+## Folders
+| Folder | What |
+|---|---|
+| `pipeline/`, `engine/`, `config/` ... | the Rust engine (same layout as the v2 repo) |
+| `onnx_model_service/` | ONNX model server (port 8000) used by the ONNX engine |
+| `elint_ui/` | web UI (port 8800) |
+| `ai_elint_tests/` | test judge (pytest), run by `./elint.sh judge` |
+| `elint_reports/` | optional report tools (per-file reports, engine compare, timing) |
+| `tools/classic/` | classic self-test, test-set generators, scorers |
+| `CHANGES_2026-11-17.md`, `CHANGES_2026-11-18.md` | what changed vs v2 and the test results |
+
+---
 
 # ai_elint
 

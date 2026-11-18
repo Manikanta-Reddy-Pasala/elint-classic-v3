@@ -255,7 +255,7 @@ def hw_now():
 
 
 # ---- compare demo ---------------------------------------------------------------------
-KNOWN_DIR = os.path.expanduser("~/coderepo/ai_elint/data/pdw_generator/known_emitters/")
+KNOWN_DIR = os.path.join(DATA_DIR, "pdw_generator", "known_emitters") + "/"
 PRESETS = [
     {"id": 1, "title": "Compare 1 · big file", "file": KNOWN_DIR + "mf03_psr2_best-3_plus3.csv",
      "engines": ["onnx", "classic"],

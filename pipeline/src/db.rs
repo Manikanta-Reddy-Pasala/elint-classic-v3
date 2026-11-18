@@ -484,7 +484,7 @@ pub async fn load_tracks(pg: &PgState) -> Result<Vec<crate::cache::EmitterTrack>
     let client = pg.acquire();
     let rows = client
         .query(
-            "SELECT id, freq, doa, power, medoid FROM emitters WHERE source <> 'unknown_ai'",
+            "SELECT id, freq, doa, power, medoid FROM emitters WHERE source <> 'unknown_ai' AND medoid IS NOT NULL AND freq IS NOT NULL AND doa IS NOT NULL AND power IS NOT NULL",
             &[],
         )
         .await
