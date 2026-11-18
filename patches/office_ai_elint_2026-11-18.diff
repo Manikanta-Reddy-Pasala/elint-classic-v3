@@ -1,0 +1,2330 @@
+diff -ruN a/config/classic_library.json b/config/classic_library.json
+--- a/config/classic_library.json	2026-11-18 12:34:19
++++ b/config/classic_library.json	2026-11-18 12:34:19
+@@ -1,14 +1,14 @@
+ {
+-  "_comment": "Rust classic naming rules. Checked top to bottom; the first rule that matches gives the library id. No match = unknown_ai. Units: MHz, us. Override the file with CLASSIC_LIBRARY=/path/to/file.json. Keys: f = [min, max] carrier (mode, 0.1 MHz bins); pw_max_ge = 99th-percentile pulse width >= value; lfm_ge = share of lfm_up pulses >= value; pri_lt = PRI (mode of gaps) < value.",
++  "_comment": "Rust classic naming rules. Checked top to bottom; the first rule that matches gives the library id. No match = unknown_ai. Units: MHz, us. Override the file with CLASSIC_LIBRARY=/path/to/file.json. Keys: f = [min, max] carrier (mode, 0.1 MHz bins); pw_max_ge = 99th-percentile pulse width >= value; lfm_ge = share of lfm_up pulses >= value; pri_lt = PRI (mode of gaps) < value; pri = PRI fundamental (us) measured on this radar: v3 names a group only when its PRI fundamental is within CLASSIC_NAME_PRI_TOL (3 %) of it, so a look-alike on the same carrier with another pulse train stays unknown.",
+   "max_bw_mhz": 6.0,
+   "rules": [
+-    {"id": 1113, "name": "MF03",   "f": [2898.0, 2905.0]},
+-    {"id": 1106, "name": "PSR3",   "f": [2848.0, 2852.0]},
+-    {"id": 1107, "name": "PSR4",   "f": [2748.0, 2752.0], "pw_max_ge": 86.0},
+-    {"id": 1104, "name": "PSR1",   "f": [2748.0, 2752.0]},
+-    {"id": 1116, "name": "PSR5m2", "f": [2798.0, 2822.0]},
+-    {"id": 1109, "name": "MF04",   "f": [2858.0, 2892.0], "lfm_ge": 0.8},
+-    {"id": 1105, "name": "PSR2",   "f": [2874.0, 2876.5], "pri_lt": 140.0},
+-    {"id": 1108, "name": "PSR5m1", "f": [2858.0, 2892.0]}
++    {"id": 1113, "name": "MF03",   "f": [2898.0, 2905.0], "pri": 294},
++    {"id": 1106, "name": "PSR3",   "f": [2848.0, 2852.0], "pri": 75},
++    {"id": 1107, "name": "PSR4",   "f": [2748.0, 2752.0], "pw_max_ge": 86.0, "pri": 1065},
++    {"id": 1104, "name": "PSR1",   "f": [2748.0, 2752.0], "pri": 1105},
++    {"id": 1116, "name": "PSR5m2", "f": [2798.0, 2822.0], "pri": 130},
++    {"id": 1109, "name": "MF04",   "f": [2858.0, 2892.0], "lfm_ge": 0.8, "pri": 307},
++    {"id": 1105, "name": "PSR2",   "f": [2874.0, 2876.5], "pri_lt": 140.0, "pri": 116},
++    {"id": 1108, "name": "PSR5m1", "f": [2858.0, 2892.0], "pri": 147}
+   ]
+ }
+diff -ruN a/pipeline/Cargo.toml b/pipeline/Cargo.toml
+--- a/pipeline/Cargo.toml	2026-11-18 12:34:18
++++ b/pipeline/Cargo.toml	2026-11-18 12:34:18
+@@ -52,3 +52,7 @@
+ codegen-units = 1
+ strip = true
+ panic = "abort"
++
++[[bin]]
++name = "classic_eval"
++path = "src/bin/classic_eval.rs"
+diff -ruN a/pipeline/src/bin/classic_eval.rs b/pipeline/src/bin/classic_eval.rs
+--- a/pipeline/src/bin/classic_eval.rs	1970-01-01 04:00:00
++++ b/pipeline/src/bin/classic_eval.rs	2026-11-18 12:34:18
+@@ -0,0 +1,176 @@
++//! Offline classic runner for experiments: CSV -> classic detect -> one JSON
++//! line per file. The engine never sees `emitter_id`; it is read here ONLY to
++//! report which true emitters each found group holds (scoring).
++//!
++//! usage: classic_eval <file.csv>...
++use ai_processor::classic_v2::{detect, freq_mode, ClassicCfg};
++use ai_processor::signature::signature;
++use ai_processor::onnx_flow::FlowPulse;
++use ai_processor::pri_pattern;
++use std::collections::BTreeMap;
++use std::io::{BufRead, BufReader};
++use std::time::Instant;
++
++fn main() -> anyhow::Result<()> {
++    let cfg = ClassicCfg::from_env();
++    // files in parallel (EVAL_JOBS, default all cores); output kept in input order
++    let paths: Vec<String> = std::env::args().skip(1).collect();
++    let jobs: usize = std::env::var("EVAL_JOBS").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
++    use rayon::prelude::*;
++    // EVAL_JOBS=1: files one after another; classic keeps all cores inside a file
++    let lines: Vec<anyhow::Result<String>> = if jobs == 1 {
++        paths.iter().map(|p| run_file(p, &cfg)).collect()
++    } else {
++        let pool = rayon::ThreadPoolBuilder::new().num_threads(jobs).build()?;
++        pool.install(|| paths.par_iter().map(|p| run_file(p, &cfg)).collect())
++    };
++    for l in lines {
++        println!("{}", l?);
++    }
++    Ok(())
++}
++
++fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
++    {
++        let f = std::fs::File::open(path)?;
++        let mut lines = BufReader::new(f).lines();
++        let head = lines.next().unwrap()?;
++        let cols: Vec<String> = split_csv(&head);
++        let ix = |n: &str| cols.iter().position(|c| c == n);
++        let (it, ip, ifr, ib, id, ido, ity, isn, ie) = (
++            ix("time_of_arrival_ns").unwrap(),
++            ix("power_dbm").unwrap(),
++            ix("center_frequency_hz").unwrap(),
++            ix("bandwidth_hz").unwrap(),
++            ix("duration_ns").unwrap(),
++            ix("direction_of_arrival_deg").unwrap(),
++            ix("type").or(ix("modulation")).unwrap(),
++            ix("snr_db"),
++            ix("emitter_id"),
++        );
++        // an omni receiver measures no direction: its DOA column is not a bearing
++        let isrc = ix("source");
++        let num = |s: &str| s.parse::<f64>().unwrap_or(f64::NAN);
++        let toa = |s: &str| s.parse::<f64>().unwrap_or_else(|_| parse_ts_ns(s));
++        let mut pulses = Vec::new();
++        let mut truth = Vec::new();
++        for (row, l) in lines.enumerate() {
++            let l = l?;
++            let vs = split_csv(&l);
++            let v: Vec<&str> = vs.iter().map(|x| x.as_str()).collect();
++            if v.len() < cols.len() {
++                continue;
++            }
++            pulses.push(FlowPulse {
++                input_id: row as i64 + 1,
++                freq_hz: num(v[ifr]),
++                power_dbm: num(v[ip]),
++                bandwidth_hz: num(v[ib]),
++                duration_ns: num(v[id]),
++                doa_deg: if isrc.map_or(false, |i| v[i].trim().eq_ignore_ascii_case("omni")) {
++                    f64::NAN
++                } else {
++                    num(v[ido])
++                },
++                snr_db: isn.map(|i| num(v[i])).unwrap_or(0.0),
++                toa_ns: toa(v[it]),
++                modulation: v[ity].to_ascii_lowercase(),
++            });
++            truth.push(ie.and_then(|i| v[i].parse::<f64>().ok()).map(|x| x as i64).unwrap_or(-9));
++        }
++        // real captures: absolute timestamps -> relative to the first pulse
++        let t0n = pulses.iter().map(|p| p.toa_ns).fold(f64::INFINITY, f64::min);
++        if t0n.is_finite() && t0n > 1e15 {
++            for p in pulses.iter_mut() {
++                p.toa_ns -= t0n;
++            }
++        }
++        let t0 = Instant::now();
++        let em = detect(&pulses, cfg);
++        let ms = t0.elapsed().as_secs_f64() * 1e3;
++        let mut out = Vec::new();
++        for (lib, idx) in &em {
++            let mut t: BTreeMap<i64, usize> = BTreeMap::new();
++            for &i in idx {
++                *t.entry(truth[i]).or_default() += 1;
++            }
++            let ps: Vec<&FlowPulse> = idx.iter().map(|&i| &pulses[i]).collect();
++            let mut dv: Vec<f64> = ps.iter().map(|p| p.doa_deg).filter(|x| x.is_finite()).collect();
++            dv.sort_by(|a, b| a.partial_cmp(b).unwrap());
++            let q = |f: f64| if dv.is_empty() { f64::NAN } else { dv[((dv.len() - 1) as f64 * f) as usize] };
++            let mut fv: Vec<f64> = ps.iter().map(|p| p.freq_hz / 1e6).collect();
++            fv.sort_by(|a, b| a.partial_cmp(b).unwrap());
++            let fq = |f: f64| fv[((fv.len() - 1) as f64 * f) as usize];
++            let toas: Vec<f64> = ps.iter().map(|p| p.toa_ns).collect();
++            let pri = pri_pattern::analyze(&toas);
++            // smallest DOA arc (deg) holding 80 % of the group's pulses (circular)
++            let arc80 = {
++                let mut a: Vec<f64> = dv.iter().map(|x| x.rem_euclid(360.0)).collect();
++                a.sort_by(|x, y| x.partial_cmp(y).unwrap());
++                let n = a.len();
++                if n < 5 {
++                    f64::NAN
++                } else {
++                    let k = ((0.8 * n as f64).ceil() as usize).max(1);
++                    (0..n)
++                        .map(|i| {
++                            let j = i + k - 1;
++                            let hi = if j < n { a[j] } else { a[j - n] + 360.0 };
++                            hi - a[i]
++                        })
++                        .fold(f64::INFINITY, f64::min)
++                }
++            };
++            out.push(serde_json::json!({"lib": lib, "n": idx.len(), "truth": t, "fmode": freq_mode(&ps),
++                "doa_q10_50_90": [q(0.1), q(0.5), q(0.9)], "doa_arc80": arc80, "f_q5_95": [fq(0.05), fq(0.95)], "pri_pattern": pri,
++                "signature": signature(&ps, cfg.pri_min_gap_us)}));
++        }
++        let mut tt: BTreeMap<i64, usize> = BTreeMap::new();
++        for &e in &truth {
++            *tt.entry(e).or_default() += 1;
++        }
++        Ok(serde_json::json!({"file": path, "pulses": pulses.len(), "ms": ms, "truth_counts": tt, "emitters": out}).to_string())
++    }
++}
++
++/// Minimal CSV split: commas outside double quotes; quotes stripped.
++fn split_csv(l: &str) -> Vec<String> {
++    let (mut out, mut cur, mut q) = (Vec::new(), String::new(), false);
++    for ch in l.chars() {
++        match ch {
++            '"' => q = !q,
++            ',' if !q => out.push(std::mem::take(&mut cur)),
++            _ => cur.push(ch),
++        }
++    }
++    out.push(cur);
++    out
++}
++
++/// "YYYY-MM-DD HH:MM:SS.fffffffff[+00:00]" -> ns since 1970 (UTC, no tz shift).
++fn parse_ts_ns(s: &str) -> f64 {
++    let s = s.trim();
++    let (d, t) = match s.split_once(|c| c == ' ' || c == 'T') {
++        Some(x) => x,
++        None => return f64::NAN,
++    };
++    let dp: Vec<i64> = d.split('-').filter_map(|x| x.parse().ok()).collect();
++    if dp.len() != 3 {
++        return f64::NAN;
++    }
++    let t = t.split(|c| c == '+' || c == 'Z').next().unwrap_or("");
++    let tp: Vec<&str> = t.split(':').collect();
++    if tp.len() != 3 {
++        return f64::NAN;
++    }
++    let (y, m, dd) = (dp[0] - (dp[1] <= 2) as i64, dp[1], dp[2]);
++    let era = y.div_euclid(400);
++    let yoe = y - era * 400;
++    let doy = (153 * (m + if m > 2 { -3 } else { 9 }) + 2) / 5 + dd - 1;
++    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
++    let days = era * 146097 + doe - 719468;
++    let (sec, frac) = tp[2].split_once('.').unwrap_or((tp[2], "0"));
++    let frac_ns: f64 = format!("{:0<9}", &frac[..frac.len().min(9)]).parse().unwrap_or(0.0);
++    let secs = days * 86400 + tp[0].parse::<i64>().unwrap_or(0) * 3600 + tp[1].parse::<i64>().unwrap_or(0) * 60 + sec.parse::<i64>().unwrap_or(0);
++    secs as f64 * 1e9 + frac_ns
++}
+diff -ruN a/pipeline/src/classic_v2.rs b/pipeline/src/classic_v2.rs
+--- a/pipeline/src/classic_v2.rs	2026-11-18 12:34:16
++++ b/pipeline/src/classic_v2.rs	2026-11-18 12:34:16
+@@ -55,6 +55,78 @@
+     pub pri_min_gap_us: f64,
+     /// Time slices with fewer pulses are folded into their neighbour.
+     pub min_slice: usize,
++    /// v3 (frequency-agile support): rescue sparse cells + join pieces
++    /// that form one clean pulse train + span-checked naming.
++    /// Default ON; CLASSIC_V3=0 = exact v2 behaviour.
++    pub v3: bool,
++    /// v3: gap histogram bin width (relative, log scale) and top-k bins.
++    pub reg_bin_rel: f64,
++    pub reg_top: usize,
++    /// v3: a joined train needs this top-k share ...
++    pub reg_min: f64,
++    /// ... and every piece's pulses must fit it at >= reg_fit x that share.
++    pub reg_fit: f64,
++    /// v3: share of a group's pulses inside a rule's carrier window to name it.
++    pub name_share: f64,
++    /// v3: a library rule with a `pri` (us) names a group only when the
++    /// group's measured PRI fundamental is within this relative distance
++    /// of it (a look-alike on the same carrier with another pulse train is
++    /// a different radar -> unknown). 0 = check off.
++    pub name_pri_tol: f64,
++    /// v3: a rescued sparse group must spread at least this wide (MHz);
++    /// narrower leftovers are stray pulses of fixed radars.
++    pub rescue_span_mhz: f64,
++    /// v3: one transmitter never sends two pulses closer than its own
++    /// shortest gap. Piece pulses closer than coll_rel x that gap to another
++    /// piece's pulse are collisions; more than coll_max of them = other radar.
++    pub coll_rel: f64,
++    pub coll_max: f64,
++    /// v3: rescued sparse groups need at least this many pulses.
++    pub rescue_min: usize,
++    /// v3: time-disjoint pieces of one radar share a main gap value
++    /// (within this relative tolerance).
++    pub gap_ratio_tol: f64,
++    /// v3: the beat step never joins groups whose pulses overlap in time
++    /// (a pulse starting while the other group's pulse is on air) beyond
++    /// this share — one transmitter cannot do that.
++    pub coh_max_overlap: f64,
++    /// v3: optional cap on the carrier gap (MHz) between two groups the beat
++    /// step may join (widest agile band expected). 0 = off.
++    pub coh_max_fgap_mhz: f64,
++    /// v3 DOA gate (direction-finder data only, detected from the data):
++    /// never join pieces whose bearings differ at the same moment. 0 = off.
++    pub doa_gate: bool,
++    /// A receiver is a direction finder when time-adjacent pulses of one
++    /// group differ by at most this (median, deg). Omni / random DOA: ~90.
++    pub df_noise_max: f64,
++    /// Track-following tolerance (deg) = max(doa_track_tol_min, doa_tol_k x noise).
++    pub doa_track_tol_min: f64,
++    pub doa_tol_k: f64,
++    /// Centre tolerance (deg) = max(doa_tol_min, doa_center_k x centre spread).
++    pub doa_tol_min: f64,
++    pub doa_center_k: f64,
++    /// Bearings are usable only if one radar's track centres spread <= this (deg).
++    pub df_center_max: f64,
++    /// Pulses closer than this (ms) count as "at the same moment".
++    pub doa_win_ms: f64,
++    /// A bearing track ends after this silence (ms).
++    pub doa_track_gap_ms: f64,
++    /// A direction split keeps a part only if it holds this share of the group.
++    pub doa_split_share: f64,
++    /// 1 = parts below that size fold into the largest part; 0 = kept apart.
++    pub doa_fold_small: bool,
++    /// DOA noise: closest bearing among this many following pulses.
++    pub doa_next: usize,
++    /// Same-moment comparisons needed before bearings count as evidence.
++    pub doa_min_evidence: usize,
++    /// Bearing drift (deg/s) up to which the receiver counts as a fixed
++    /// direction finder (a spinning antenna sweeps ~100s of deg/s).
++    pub doa_fixed_rate: f64,
++    /// DF: split every group by direction before the v3 join (1) or only the
++    /// rescued groups (0); and split final groups by direction tracks (1) or
++    /// by the v2-era DOA histogram rule (0).
++    pub doa_presplit: bool,
++    pub doa_final_split: bool,
+ }
+ 
+ fn env_or<T: std::str::FromStr>(k: &str, d: T) -> T {
+@@ -80,6 +152,36 @@
+             cluster_sec: env_or("CLASSIC_CLUSTER_SEC", 1.0),
+             pri_min_gap_us: env_or("CLASSIC_PRI_MIN_GAP_US", 1.0),
+             min_slice: env_or("CLASSIC_MIN_SLICE", 50),
++            v3: env_or("CLASSIC_V3", 1) == 1,
++            reg_bin_rel: env_or("CLASSIC_REG_BIN_REL", 0.01),
++            reg_top: env_or("CLASSIC_REG_TOP", 8),
++            reg_min: env_or("CLASSIC_REG_MIN", 0.25),
++            reg_fit: env_or("CLASSIC_REG_FIT", 0.5),
++            name_share: env_or("CLASSIC_NAME_SHARE", 0.8),
++            name_pri_tol: env_or("CLASSIC_NAME_PRI_TOL", 0.03),
++            rescue_span_mhz: env_or("CLASSIC_RESCUE_SPAN_MHZ", 20.0),
++            coll_rel: env_or("CLASSIC_COLL_REL", 0.4),
++            coll_max: env_or("CLASSIC_COLL_MAX", 0.02),
++            rescue_min: env_or("CLASSIC_RESCUE_MIN", 200),
++            gap_ratio_tol: env_or("CLASSIC_GAP_RATIO_TOL", 0.05),
++            coh_max_overlap: env_or("CLASSIC_COH_MAX_OVERLAP", 0.002),
++            coh_max_fgap_mhz: env_or("CLASSIC_COH_MAX_FGAP_MHZ", 0.0),
++            doa_gate: env_or("CLASSIC_DOA_GATE", 1) == 1,
++            df_noise_max: env_or("CLASSIC_DF_NOISE_MAX_DEG", 10.0),
++            doa_track_tol_min: env_or("CLASSIC_DOA_TRACK_TOL_MIN_DEG", 5.0),
++            doa_tol_k: env_or("CLASSIC_DOA_TOL_K", 4.0),
++            doa_tol_min: env_or("CLASSIC_DOA_TOL_MIN_DEG", 6.0),
++            doa_center_k: env_or("CLASSIC_DOA_CENTER_K", 3.0),
++            df_center_max: env_or("CLASSIC_DF_CENTER_MAX_DEG", 20.0),
++            doa_win_ms: env_or("CLASSIC_DOA_WIN_MS", 20.0),
++            doa_track_gap_ms: env_or("CLASSIC_DOA_TRACK_GAP_MS", 50.0),
++            doa_split_share: env_or("CLASSIC_DOA_SPLIT_SHARE", 0.1),
++            doa_fold_small: env_or("CLASSIC_DOA_FOLD_SMALL", 0) == 1,
++            doa_next: env_or("CLASSIC_DOA_NEXT", 6),
++            doa_min_evidence: env_or("CLASSIC_DOA_MIN_EVIDENCE", 20),
++            doa_fixed_rate: env_or("CLASSIC_DOA_FIXED_RATE", 15.0),
++            doa_presplit: env_or("CLASSIC_DOA_PRESPLIT", 1) == 1,
++            doa_final_split: env_or("CLASSIC_DOA_FINAL_SPLIT", 1) == 1,
+         }
+     }
+ }
+@@ -202,6 +304,18 @@
+     pw_max_ge: Option<f64>,
+     lfm_ge: Option<f64>,
+     pri_lt: Option<f64>,
++    /// v3: PRI fundamental (us) measured on this radar; see `name_pri_tol`.
++    #[serde(default)]
++    pri: Option<f64>,
++    /// "mode" (default): carrier mode inside `f`. "span": share of the
++    /// group's pulses inside `f` >= name_share (frequency-agile radars).
++    #[serde(default)]
++    r#match: Option<String>,
++    /// Optional median pulse width range (us) and dominant modulation.
++    #[serde(default)]
++    pw: Option<[f64; 2]>,
++    #[serde(default)]
++    modulation: Option<String>,
+ }
+ 
+ #[derive(serde::Deserialize, Debug, Clone)]
+@@ -235,7 +349,7 @@
+ 
+ /// Library id from measured group features (no labels, no generator PRI).
+ /// Rules come from the naming table, checked top to bottom; first match wins.
+-fn library_id(ps: &[&FlowPulse], toas_sorted: &[f64]) -> Option<i64> {
++fn library_id(ps: &[&FlowPulse], toas_sorted: &[f64], cfg: &ClassicCfg) -> Option<i64> {
+     let f_mhz = mode_bin(ps.iter().map(|p| (p.freq_hz / 1e5).round() as i64))? as f64 / 10.0;
+     let bw_mhz = mode_bin(ps.iter().map(|p| (p.bandwidth_hz / 1e5).round() as i64)).unwrap_or(0) as f64 / 10.0;
+     let lib = library_table();
+@@ -246,10 +360,48 @@
+     let mut pw_max: Option<f64> = None;
+     let mut lfm: Option<f64> = None;
+     let mut pri: Option<f64> = None;
++    let mut fund: Option<f64> = None;
++    let share_in = |r: &LibRule| {
++        ps.iter().filter(|p| (r.f[0]..=r.f[1]).contains(&(p.freq_hz / 1e6))).count() as f64 / ps.len() as f64
++    };
++    let mut pw_med: Option<f64> = None;
++    let mut mod_top: Option<String> = None;
+     for r in &lib.rules {
+-        if !(r.f[0]..=r.f[1]).contains(&f_mhz) {
+-            continue;
++        if let Some([lo, hi]) = r.pw {
++            let x = *pw_med.get_or_insert_with(|| {
++                let mut w: Vec<f64> = ps.iter().map(|p| p.duration_ns / 1e3).collect();
++                quantile(&mut w, 0.5)
++            });
++            if x < lo || x > hi {
++                continue;
++            }
+         }
++        if let Some(m) = &r.modulation {
++            let top = mod_top.get_or_insert_with(|| {
++                let mut c: HashMap<String, usize> = HashMap::new();
++                for p in ps {
++                    *c.entry(norm_mod(&p.modulation).replace('_', "")).or_default() += 1;
++                }
++                c.into_iter().max_by(|a, b| a.1.cmp(&b.1).then(b.0.cmp(&a.0))).map(|x| x.0).unwrap_or_default()
++            });
++            if *top != norm_mod(m).replace('_', "") {
++                continue;
++            }
++        }
++        let span_rule = r.r#match.as_deref() == Some("span");
++        if span_rule {
++            if !cfg.v3 || share_in(r) < cfg.name_share {
++                continue;
++            }
++        } else {
++            if !(r.f[0]..=r.f[1]).contains(&f_mhz) {
++                continue;
++            }
++            // v3: a wide (agile) group is not named by its busiest carrier alone
++            if cfg.v3 && share_in(r) < cfg.name_share {
++                continue;
++            }
++        }
+         if let Some(v) = r.pw_max_ge {
+             let x = *pw_max.get_or_insert_with(|| {
+                 let mut pw: Vec<f64> = ps.iter().map(|p| p.duration_ns / 1e3).collect();
+@@ -268,6 +420,12 @@
+                 continue;
+             }
+         }
++        if let (true, Some(want)) = (cfg.v3 && cfg.name_pri_tol > 0.0, r.pri) {
++            let x = *fund.get_or_insert_with(|| crate::signature::pri_fund_us(toas_sorted, cfg.pri_min_gap_us));
++            if !(x.is_finite() && (x - want).abs() <= cfg.name_pri_tol * want) {
++                continue;
++            }
++        }
+         if let Some(v) = r.pri_lt {
+             let x = *pri.get_or_insert_with(|| pri_mode_us(toas_sorted));
+             if x >= v {
+@@ -279,6 +437,67 @@
+     None
+ }
+ 
++/// Frequency mode of one group, from carrier vs time only (report label):
++/// fixed | sliding | burst | n_modal | agile_discrete | agile_continuous.
++pub fn freq_mode(ps: &[&FlowPulse]) -> &'static str {
++    if ps.len() < 20 {
++        return "unknown";
++    }
++    let mut v: Vec<(f64, f64)> = ps.iter().map(|p| (p.toa_ns, p.freq_hz / 1e6)).collect();
++    v.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
++    let mut f: Vec<f64> = v.iter().map(|x| x.1).collect();
++    let span = quantile(&mut f.clone(), 0.98) - quantile(&mut f, 0.02);
++    if span <= 3.0 {
++        return "fixed";
++    }
++    // carrier strongly tied to time -> sliding
++    let n = v.len() as f64;
++    let (mt, mf) = (v.iter().map(|x| x.0).sum::<f64>() / n, v.iter().map(|x| x.1).sum::<f64>() / n);
++    let (mut sxy, mut sxx, mut syy) = (0.0, 0.0, 0.0);
++    for (t, fr) in &v {
++        sxy += (t - mt) * (fr - mf);
++        sxx += (t - mt) * (t - mt);
++        syy += (fr - mf) * (fr - mf);
++    }
++    let r = if sxx > 0.0 && syy > 0.0 { sxy / (sxx * syy).sqrt() } else { 0.0 };
++    // 1 MHz histogram -> peaks (local maxima holding >= 3 % of pulses)
++    let mut h: BTreeMap<i64, usize> = BTreeMap::new();
++    for x in &v {
++        *h.entry(x.1.round() as i64).or_default() += 1;
++    }
++    let get = |k: i64| *h.get(&k).unwrap_or(&0);
++    let peaks: Vec<i64> = h
++        .iter()
++        .filter(|(k, c)| **c as f64 >= 0.03 * n && **c >= get(**k - 1) && **c > get(**k + 1))
++        .map(|(k, _)| *k)
++        .collect();
++    let in_peak = |fr: f64| peaks.iter().position(|p| (fr.round() as i64 - p).abs() <= 1);
++    let covered = v.iter().filter(|x| in_peak(x.1).is_some()).count() as f64 / n;
++    if r.abs() >= 0.9 && peaks.len() <= 1 {
++        return "sliding";
++    }
++    if covered < 0.85 || peaks.is_empty() {
++        return if r.abs() >= 0.9 { "sliding" } else { "agile_continuous" };
++    }
++    // run length of the same peak in TOA order
++    let lab: Vec<Option<usize>> = v.iter().map(|x| in_peak(x.1)).collect();
++    let (mut runs, mut cur) = (1usize, lab[0]);
++    for l in &lab[1..] {
++        if *l != cur {
++            runs += 1;
++            cur = *l;
++        }
++    }
++    let mean_run = n / runs as f64;
++    if mean_run >= 5.0 {
++        "burst"
++    } else if peaks.len() <= 3 {
++        "n_modal"
++    } else {
++        "agile_discrete"
++    }
++}
++
+ /// Group pulses into emitters. Returns (emitter key, pulse indices) where
+ /// the key is `Some(library id)` or `None` for an unknown emitter.
+ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<usize>)> {
+@@ -288,9 +507,21 @@
+     // 1. cells — modulation interned to a small id, then a parallel fold of
+     //    per-thread cell maps merged at the end (no String per pulse).
+     let mut mod_ids: HashMap<String, i64> = HashMap::new();
++    // v3: a receiver without intra-pulse analysis reports no modulation at
++    // all; then every pulse is one "none" class instead of being skipped.
++    let no_mod = cfg.v3 && {
++        let known = pulses.iter().filter(|p| {
++            let m = norm_mod(&p.modulation);
++            !(m.is_empty() || m.starts_with("unk"))
++        });
++        (known.count() as f64) < 0.1 * pulses.len() as f64
++    };
+     let pulse_mod: Vec<i64> = pulses
+         .iter()
+         .map(|p| {
++            if no_mod {
++                return 0;
++            }
+             let m = norm_mod(&p.modulation);
+             if m.is_empty() || m.starts_with("unk") {
+                 return -1;
+@@ -327,6 +558,11 @@
+         debug!("classic_v2: sample pulse {:?}", p);
+     }
+     let n_cells_all = cells.len();
++    let sparse: Vec<usize> = if cfg.v3 {
++        cells.values().filter(|v| v.len() < cfg.min_cell).flatten().copied().collect()
++    } else {
++        Vec::new()
++    };
+     cells.retain(|_, v| v.len() >= cfg.min_cell);
+     debug!("classic_v2: {} cells, {} with >= {} pulses", n_cells_all, cells.len(), cfg.min_cell);
+     emit_dur("classic.cells", t.elapsed());
+@@ -355,6 +591,11 @@
+     let mut groups: Vec<Vec<usize>> = comps.into_values().collect();
+     emit_dur("classic.components", t.elapsed());
+     t = Instant::now();
++    // v3: direction-finder check (from the data) for the DOA gate
++    let dctx = if cfg.v3 && cfg.doa_gate { doa_ctx(pulses, &groups, cfg) } else { DoaCtx::default() };
++    if std::env::var("CLASSIC_DOA_DEBUG").is_ok() {
++        eprintln!("DOA ctx {:?}", dctx);
++    }
+ 
+     // 3. same-emitter split repair (carrier + BW overlap, PW within 2 %)
+     let summ = |g: &Vec<usize>| {
+@@ -378,6 +619,8 @@
+         let (c2, n2) = coherence_n(&rtoas[b], &rtoas[a], cfg.coh_top, cfg.coh_samples);
+         n1 >= cfg.coh_min_pairs && n2 >= cfg.coh_min_pairs && c1.max(c2) < cfg.coh_min
+     };
++    let rtr: Vec<Vec<(f64, f64)>> =
++        if dctx.df { groups.par_iter().map(|g| doa_train(pulses, g)).collect() } else { Vec::new() };
+     let mut uf = Uf::new(groups.len());
+     for a in 0..groups.len() {
+         for b in a + 1..groups.len() {
+@@ -389,6 +632,7 @@
+                 && bb0 - cfg.merge_bw_hz <= ba1
+                 && (wa - wb).abs() <= cfg.merge_pw_rel * wa.min(wb)
+                 && !different_clock(a, b)
++                && !(dctx.df && doa_conflict(&rtr[a], &rtr[b], &dctx, cfg))
+             {
+                 uf.union(a, b);
+             }
+@@ -402,6 +646,8 @@
+ 
+     // 4. pulse-train coherence
+     let toas: Vec<Vec<f64>> = groups.par_iter().map(|g| sorted_toas(pulses, g)).collect();
++    let ctr: Vec<Vec<(f64, f64)>> =
++        if dctx.df { groups.par_iter().map(|g| doa_train(pulses, g)).collect() } else { Vec::new() };
+     let mut uf = Uf::new(groups.len());
+     {
+         let pairs: Vec<(usize, usize)> =
+@@ -413,10 +659,55 @@
+                 // beat between two unrelated trains (e.g. 2116 µs vs 220 µs).
+                 let c1 = coherence(&toas[*a], &toas[*b], cfg.coh_top, cfg.coh_samples, cfg.coh_min_pairs);
+                 let c2 = coherence(&toas[*b], &toas[*a], cfg.coh_top, cfg.coh_samples, cfg.coh_min_pairs);
+-                c1.max(c2) >= cfg.coh_thr && c1.min(c2) >= cfg.coh_min
++                if !(c1.max(c2) >= cfg.coh_thr && c1.min(c2) >= cfg.coh_min) {
++                    return false;
++                }
++                if cfg.v3 {
++                    if pulse_overlap(pulses, &groups[*a], &groups[*b]) > cfg.coh_max_overlap {
++                        return false;
++                    }
++                    if dctx.df && doa_conflict(&ctr[*a], &ctr[*b], &dctx, cfg) {
++                        return false;
++                    }
++                    if cfg.coh_max_fgap_mhz > 0.0 {
++                        let fq = |g: &Vec<usize>, q: f64| {
++                            let mut v: Vec<f64> = g.iter().map(|&i| pulses[i].freq_hz / 1e6).collect();
++                            quantile(&mut v, q)
++                        };
++                        let (a0, a1, b0, b1) = (fq(&groups[*a], 0.05), fq(&groups[*a], 0.95), fq(&groups[*b], 0.05), fq(&groups[*b], 0.95));
++                        if (a0 - b1).max(b0 - a1) > cfg.coh_max_fgap_mhz {
++                            return false;
++                        }
++                    }
++                }
++                true
+             })
+             .copied()
+             .collect();
++        if std::env::var("CLASSIC_COH_DEBUG").is_ok() {
++            let st = |g: &Vec<usize>| {
++                let mut w: Vec<f64> = g.iter().map(|&i| pulses[i].duration_ns / 1e3).collect();
++                let mut bw: Vec<f64> = g.iter().map(|&i| pulses[i].bandwidth_hz / 1e6).collect();
++                let mut mc: HashMap<String, usize> = HashMap::new();
++                for &i in g {
++                    *mc.entry(norm_mod(&pulses[i].modulation)).or_default() += 1;
++                }
++                let m = mc.into_iter().max_by_key(|x| x.1).map(|x| x.0).unwrap_or_default();
++                (m, quantile(&mut w, 0.5), quantile(&mut bw, 0.5), g.len())
++            };
++            for (a, b) in &hits {
++                let (ma, wa, ba, na) = st(&groups[*a]);
++                let (mb, wb, bb, nb) = st(&groups[*b]);
++                let (r, fit, coll) = train_fit(pulses, &groups, &[*a, *b], cfg);
++                // overlap: B pulse starting while an A pulse is on air (or vice versa)
++                let ov = pulse_overlap(pulses, &groups[*a], &groups[*b]);
++                let fq = |g: &Vec<usize>, q: f64| { let mut v: Vec<f64> = g.iter().map(|&i| pulses[i].freq_hz / 1e6).collect(); quantile(&mut v, q) };
++                let pw_ = |g: &Vec<usize>| { let mut v: Vec<f64> = g.iter().map(|&i| pulses[i].power_dbm).collect(); quantile(&mut v, 0.5) };
++                let fgap = (fq(&groups[*a], 0.05) - fq(&groups[*b], 0.95)).max(fq(&groups[*b], 0.05) - fq(&groups[*a], 0.95)).max(0.0);
++                let dp = (pw_(&groups[*a]) - pw_(&groups[*b])).abs();
++                eprintln!("COH|{ma}|{mb}|{wa:.2}|{wb:.2}|{ba:.2}|{bb:.2}|{na}|{nb}|{r:.3}|{:.3}|{:.3}|{:.4}|{:.4}|{ov:.4}|{fgap:.1}|{dp:.2}", fit[0], fit[1], coll[0], coll[1]);
++            }
++        }
+         for (a, b) in hits {
+             uf.union(a, b);
+         }
+@@ -427,6 +718,19 @@
+     emit_dur("classic.coherence", t.elapsed());
+     t = Instant::now();
+ 
++    if cfg.v3 {
++        groups = v3_rescue_and_join(pulses, &pulse_mod, groups, sparse, cfg, &dctx);
++        groups = if dctx.df && cfg.doa_final_split {
++            groups.into_par_iter().flat_map_iter(|g| doa_track_split(pulses, g, &dctx, cfg)).collect()
++        } else {
++            groups.into_iter().flat_map(|g| doa_split(pulses, g)).collect()
++        };
++        groups.retain(|g| g.len() >= cfg.min_group);
++        debug!("classic_v3: {} groups after agile join", groups.len());
++        emit_dur("classic.v3_join", t.elapsed());
++        t = Instant::now();
++    }
++
+     // 5. naming; one emitter per library id
+     let mut known: BTreeMap<i64, Vec<usize>> = BTreeMap::new();
+     let mut out: Vec<(Option<i64>, Vec<usize>)> = Vec::new();
+@@ -434,7 +738,7 @@
+         .par_iter()
+         .map(|g| {
+             let ps: Vec<&FlowPulse> = g.iter().map(|&i| &pulses[i]).collect();
+-            library_id(&ps, &sorted_toas(pulses, g))
++            library_id(&ps, &sorted_toas(pulses, g), cfg)
+         })
+         .collect();
+     for (g, name) in groups.into_iter().zip(names) {
+@@ -449,6 +753,783 @@
+     res
+ }
+ 
++/// v3 step A + B.
++/// A. Pulses from sparse cells (an agile radar spreads thin over 1 MHz cells)
++///    are regrouped on (modulation, PW, BW) only, ignoring the carrier.
++/// B. Pieces with the same modulation, PW (within merge_pw_rel) and
++///    overlapping BW are candidates for one radar whatever their carrier.
++///    The candidate set is merged into one pulse train; pieces whose pulses
++///    do not fit that train's gap pattern are pushed out and retried as
++///    their own set. One radar's hops/bursts rebuild its PRI pattern; a
++///    different radar's pulses fall at random offsets and fit badly.
++fn v3_rescue_and_join(
++    pulses: &[FlowPulse],
++    pulse_mod: &[i64],
++    mut groups: Vec<Vec<usize>>,
++    sparse: Vec<usize>,
++    cfg: &ClassicCfg,
++    dctx: &DoaCtx,
++) -> Vec<Vec<usize>> {
++    use rayon::prelude::*;
++    let lw = (1.0 + cfg.pw_rel).ln();
++    let key = |i: usize| {
++        let p = &pulses[i];
++        (pulse_mod[i], ((p.duration_ns / 1e3).max(0.05).ln() / lw).round() as i64, (p.bandwidth_hz / 1e6).round() as i64)
++    };
++    // A. rescue
++    let mut cells: HashMap<(i64, i64, i64), Vec<usize>> = HashMap::new();
++    for i in sparse {
++        cells.entry(key(i)).or_default().push(i);
++    }
++    let keys: Vec<(i64, i64, i64)> = cells.keys().cloned().collect();
++    let idx: HashMap<(i64, i64, i64), usize> = keys.iter().enumerate().map(|(i, k)| (*k, i)).collect();
++    let mut uf = Uf::new(keys.len());
++    for (i, (m, w, b)) in keys.iter().enumerate() {
++        for dw in -1..=1 {
++            for db in -1..=1 {
++                if let Some(&j) = idx.get(&(*m, w + dw, b + db)) {
++                    uf.union(i, j);
++                }
++            }
++        }
++    }
++    let mut comps: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
++    for (i, k) in keys.iter().enumerate() {
++        comps.entry(uf.find(i)).or_default().extend_from_slice(&cells[k]);
++    }
++    let rescued: Vec<Vec<usize>> = comps
++        .into_values()
++        .filter(|g| {
++            if g.len() < cfg.rescue_min.max(cfg.min_group) {
++                return false;
++            }
++            let mut f: Vec<f64> = g.iter().map(|&i| pulses[i].freq_hz / 1e6).collect();
++            quantile(&mut f.clone(), 0.95) - quantile(&mut f, 0.05) >= cfg.rescue_span_mhz
++        })
++        .collect();
++    if dctx.df {
++        // pieces must be direction-pure before joining: a piece that still
++        // holds two directions has a meaningless centre. Rescued groups
++        // (carrier ignored) mix directions most; the join rebuilds each radar.
++        if cfg.doa_presplit {
++            groups = groups.into_par_iter().flat_map_iter(|g| doa_track_split(pulses, g, dctx, cfg)).collect();
++        }
++        groups.extend(
++            rescued
++                .into_iter()
++                .flat_map(|g| doa_track_split(pulses, g, dctx, cfg))
++                .filter(|g| g.len() >= cfg.min_group),
++        );
++    } else {
++        groups.extend(rescued);
++    }
++
++    // B. candidate sets: same modulation, PW close, BW overlap
++    let stat = |g: &Vec<usize>| {
++        let mut b: Vec<f64> = g.iter().map(|&i| pulses[i].bandwidth_hz).collect();
++        let mut w: Vec<f64> = g.iter().map(|&i| pulses[i].duration_ns).collect();
++        let mut mc: HashMap<i64, usize> = HashMap::new();
++        for &i in g {
++            *mc.entry(pulse_mod[i]).or_default() += 1;
++        }
++        let m = mc.into_iter().max_by_key(|x| (x.1, -x.0)).map(|x| x.0).unwrap_or(-1);
++        (m, quantile(&mut w, 0.5), quantile(&mut b, 0.05), quantile(&mut b, 0.95))
++    };
++    let st: Vec<_> = groups.par_iter().map(stat).collect();
++    let jtr: Vec<Vec<(f64, f64)>> =
++        if dctx.df { groups.par_iter().map(|g| doa_train(pulses, g)).collect() } else { Vec::new() };
++    let conflict = |a: usize, b: usize| dctx.df && doa_conflict(&jtr[a], &jtr[b], dctx, cfg);
++    let mut uf = Uf::new(groups.len());
++    for a in 0..groups.len() {
++        for b in a + 1..groups.len() {
++            let (ma, wa, ba0, ba1) = st[a];
++            let (mb, wb, bb0, bb1) = st[b];
++            if ma == mb
++                && (wa - wb).abs() <= cfg.merge_pw_rel * wa.min(wb)
++                && ba0 - cfg.merge_bw_hz <= bb1
++                && bb0 - cfg.merge_bw_hz <= ba1
++                && !conflict(a, b)
++            {
++                uf.union(a, b);
++            }
++        }
++    }
++    let mut sets: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
++    for g in 0..groups.len() {
++        sets.entry(uf.find(g)).or_default().push(g);
++    }
++    // each candidate set is independent: decide in parallel, groups read-only;
++    // every decision is a list of group indices, assembled in set order below
++    let groups_ref = &groups;
++    let decide = |set: Vec<usize>| -> Vec<Vec<usize>> {
++        let groups = groups_ref;
++        let mut out: Vec<Vec<usize>> = Vec::new();
++        let mut todo = vec![set];
++        while let Some(mut cand) = todo.pop() {
++            if cand.len() == 1 {
++                out.push(vec![cand[0]]);
++                continue;
++            }
++            // DF: pieces seen in another direction than the largest piece leave
++            if dctx.df {
++                let big = (0..cand.len()).max_by_key(|k| groups[cand[*k]].len()).unwrap();
++                let gb = cand[big];
++                let off: Vec<usize> = cand.iter().copied().filter(|g| *g != gb && conflict(*g, gb)).collect();
++                if !off.is_empty() {
++                    cand.retain(|g| !off.contains(g));
++                    todo.push(off);
++                    if cand.len() == 1 {
++                        out.push(vec![cand[0]]);
++                        continue;
++                    }
++                }
++            }
++            // base-gap check against the largest piece
++            let base: Vec<Option<Vec<f64>>> = cand.iter().map(|g| own_gap_set(pulses, &groups[*g], cfg)).collect();
++            let big = (0..cand.len()).max_by_key(|k| groups[cand[*k]].len()).unwrap();
++            if let Some(b0) = base[big].clone() {
++                let ref_t = sorted_toas(pulses, &groups[cand[big]]);
++                let ref_med = own_gap_q(&ref_t, cfg, 0.5).unwrap_or(0.0);
++                let ok = |k: usize| match &base[k] {
++                    None => true,
++                    // on air together with the largest piece: the collision
++                    // test decides; the base gap only for time-disjoint pieces
++                    Some(_) if k == big => true,
++                    Some(_) if {
++                        let tk = sorted_toas(pulses, &groups[cand[k]]);
++                        let w = 2.0 * ref_med.max(own_gap_q(&tk, cfg, 0.5).unwrap_or(0.0));
++                        let near = tk
++                            .iter()
++                            .filter(|x| {
++                                let j = ref_t.partition_point(|y| y < x);
++                                (j > 0 && *x - ref_t[j - 1] <= w) || (j < ref_t.len() && ref_t[j] - *x <= w)
++                            })
++                            .count();
++                        near as f64 >= 0.5 * tk.len() as f64
++                    } => true,
++                    // time-disjoint pieces of one radar share a main gap value
++                    // (a sparse sample of the same radar shows whole multiples)
++                    Some(b) => b.iter().any(|x| {
++                        b0.iter().any(|y| {
++                            let r = x / y;
++                            let m = r.round();
++                            (1.0..=8.0).contains(&m) && (r - m).abs() <= cfg.gap_ratio_tol * m.sqrt()
++                        })
++                    }),
++                };
++                let off: Vec<usize> = (0..cand.len()).filter(|k| !ok(*k)).map(|k| cand[k]).collect();
++                if !off.is_empty() && std::env::var("CLASSIC_V3_DEBUG").is_ok() {
++                    eprintln!("v3 base-gap off: {:?} base={:?}", off.iter().map(|g| groups[*g].len()).collect::<Vec<_>>(), base);
++                }
++                if !off.is_empty() {
++                    cand.retain(|g| !off.contains(g));
++                    todo.push(off);
++                    if cand.len() == 1 {
++                        out.push(vec![cand[0]]);
++                        continue;
++                    }
++                }
++            }
++            loop {
++                let (r, fit, coll) = train_fit(pulses, groups, &cand, cfg);
++                if std::env::var("CLASSIC_V3_DEBUG").is_ok() {
++                    let sz: Vec<usize> = cand.iter().map(|g| groups[*g].len()).collect();
++                    eprintln!("v3 cand sizes={sz:?} r={r:.3} fit={fit:.2?} coll={coll:.3?}");
++                }
++                let keep: Vec<usize> = cand
++                    .iter()
++                    .enumerate()
++                    .filter(|(k, _)| r >= cfg.reg_min && fit[*k] >= cfg.reg_fit * r && coll[*k] <= cfg.coll_max)
++                    .map(|(_, g)| *g)
++                    .collect();
++                if keep.len() == cand.len() {
++                    // one clean train: join every piece
++                    out.push(cand.clone());
++                    break;
++                }
++                if keep.len() <= 1 {
++                    // no clean train: push out the worst-fitting piece, retry the rest
++                    // worst = most collisions, then worst fit
++                    let worst = (0..cand.len())
++                        .max_by(|a, b| (coll[*a], -fit[*a]).partial_cmp(&(coll[*b], -fit[*b])).unwrap())
++                        .unwrap();
++                    let w = cand.remove(worst);
++                    out.push(vec![w]);
++                    if cand.len() == 1 {
++                        out.push(vec![cand[0]]);
++                        break;
++                    }
++                    continue;
++                }
++                let rest: Vec<usize> = cand.iter().filter(|g| !keep.contains(g)).copied().collect();
++                todo.push(rest);
++                cand = keep;
++            }
++        }
++        out
++    };
++    let sets: Vec<Vec<usize>> = sets.into_values().collect();
++    let decided: Vec<Vec<Vec<usize>>> = sets.into_par_iter().map(decide).collect();
++    let mut out: Vec<Vec<usize>> = Vec::new();
++    for lists in decided {
++        for l in lists {
++            let mut j = Vec::new();
++            for g in l {
++                j.append(&mut groups[g]);
++            }
++            out.push(j);
++        }
++    }
++    out.retain(|g| !g.is_empty());
++    out
++}
++
++/// v3 DOA context, measured from the data: is the receiver a direction
++/// finder and how noisy are its bearings. Not usable -> every DOA rule is off.
++///
++/// Bearings are judged per *track*: pulses of one group walked in time order,
++/// each joining the open track whose last bearings are within `track_tol`
++/// (a track ends after a silence). A rotating antenna that only hears a
++/// radar while pointing near it gives one track per look ("dwell"), with
++/// the bearing sweeping across the beam; its centre (median) is stable from
++/// look to look. A fixed direction finder gives one long track per radar.
++#[derive(Clone, Copy, Debug, Default)]
++pub struct DoaCtx {
++    pub df: bool,
++    /// median |DOA difference| of time-adjacent pulses in one group (deg)
++    pub noise: f64,
++    /// bearings hardly move while a radar is heard (fixed direction finder,
++    /// not a spinning antenna): bearings at different times may be compared
++    pub fixed: bool,
++    /// median bearing drift while one radar is heard (deg/s)
++    pub rate: f64,
++    /// track-following tolerance (deg)
++    pub track_tol: f64,
++    /// two pulse trains whose bearings at the same moment differ by more
++    /// than this (median) are different radars (deg)
++    pub tol: f64,
++    /// the same pulse seen twice (< pri_min_gap apart): median |DOA
++    /// difference| of the two reports and their share of time-adjacent pairs.
++    /// Two receivers that disagree on the same pulse = DOA not usable.
++    pub dup_diff: f64,
++    pub dup_share: f64,
++}
++
++/// Signed circular difference a - b in (-180, 180].
++fn circ_diff(a: f64, b: f64) -> f64 {
++    let d = (a - b).rem_euclid(360.0);
++    if d > 180.0 {
++        d - 360.0
++    } else {
++        d
++    }
++}
++
++/// Weighted circular median of bearings (deg): median of offsets around the
++/// weighted circular mean.
++fn circ_median(v: &[(f64, f64)]) -> f64 {
++    let (mut s, mut c) = (0.0, 0.0);
++    for (x, w) in v {
++        s += w * x.to_radians().sin();
++        c += w * x.to_radians().cos();
++    }
++    let m = s.atan2(c).to_degrees();
++    let off: Vec<(f64, f64)> = v.iter().map(|(x, w)| (circ_diff(*x, m), *w)).collect();
++    (m + weighted_median(off)).rem_euclid(360.0)
++}
++
++fn weighted_median(mut v: Vec<(f64, f64)>) -> f64 {
++    if v.is_empty() {
++        return f64::NAN;
++    }
++    v.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
++    let half = v.iter().map(|x| x.1).sum::<f64>() / 2.0;
++    let mut acc = 0.0;
++    for (x, w) in &v {
++        acc += w;
++        if acc >= half {
++            return *x;
++        }
++    }
++    v.last().unwrap().0
++}
++
++/// Pulses of a group with a finite DOA, in time order.
++fn doa_order(pulses: &[FlowPulse], g: &[usize]) -> Vec<usize> {
++    let mut o: Vec<usize> = g.iter().copied().filter(|&i| pulses[i].doa_deg.is_finite()).collect();
++    o.sort_unstable_by(|a, b| pulses[*a].toa_ns.partial_cmp(&pulses[*b].toa_ns).unwrap());
++    o
++}
++
++/// Bearing tracks of time-ordered pulses (see `DoaCtx`). A track ends after
++/// a silence of max(doa_track_gap_ms, 10 x the group's median gap), at most 2 s.
++fn doa_tracks(pulses: &[FlowPulse], ord: &[usize], tol: f64, cfg: &ClassicCfg) -> Vec<Vec<usize>> {
++    if ord.is_empty() {
++        return Vec::new();
++    }
++    let mut gaps: Vec<f64> = ord.windows(2).map(|w| pulses[w[1]].toa_ns - pulses[w[0]].toa_ns).collect();
++    let med = if gaps.is_empty() { 0.0 } else { quantile(&mut gaps, 0.5) };
++    let gap = (cfg.doa_track_gap_ms * 1e6).max(10.0 * med).min(2e9);
++    // (last toa, last 3 bearings, members)
++    let mut tracks: Vec<(f64, Vec<f64>, Vec<usize>)> = Vec::new();
++    let mut active: Vec<usize> = Vec::new();
++    for &i in ord {
++        let (t, d) = (pulses[i].toa_ns, pulses[i].doa_deg);
++        active.retain(|k| t - tracks[*k].0 <= gap);
++        let mut best: Option<(usize, f64)> = None;
++        for &k in &active {
++            let rc = &tracks[k].1;
++            let last = *rc.last().unwrap();
++            let mut ds: Vec<f64> = rc.iter().map(|x| circ_diff(*x, last)).collect();
++            let e = circ_diff(d, last + quantile(&mut ds, 0.5)).abs();
++            if best.map_or(true, |b| e < b.1) {
++                best = Some((k, e));
++            }
++        }
++        match best {
++            Some((k, e)) if e <= tol => {
++                let tr = &mut tracks[k];
++                tr.0 = t;
++                tr.1.push(d);
++                if tr.1.len() > 3 {
++                    tr.1.remove(0);
++                }
++                tr.2.push(i);
++            }
++            _ => {
++                tracks.push((t, vec![d], vec![i]));
++                active.push(tracks.len() - 1);
++            }
++        }
++    }
++    tracks.into_iter().map(|t| t.2).collect()
++}
++
++fn doa_ctx(pulses: &[FlowPulse], groups: &[Vec<usize>], cfg: &ClassicCfg) -> DoaCtx {
++    use rayon::prelude::*;
++    let win = cfg.doa_win_ms * 1e6;
++    let dup_ns = cfg.pri_min_gap_us * 1e3;
++    // pass 1: time-adjacent noise + duplicate disagreement
++    let per: Vec<(f64, f64, Vec<f64>, usize, f64)> = groups
++        .par_iter()
++        .filter_map(|g| {
++            let o = doa_order(pulses, g);
++            if o.len() < 50 {
++                return None;
++            }
++            let (mut d1, mut dd) = (Vec::new(), Vec::new());
++            for k in 0..o.len() - 1 {
++                let a = &pulses[o[k]];
++                let b = &pulses[o[k + 1]];
++                if b.toa_ns - a.toa_ns < dup_ns {
++                    dd.push(circ_diff(b.doa_deg, a.doa_deg).abs());
++                    continue;
++                }
++                // closest bearing among the next pulses: a group may still hold
++                // several interleaved radars; one of the next pulses is the same one
++                let best = o[k + 1..o.len().min(k + 1 + cfg.doa_next)]
++                    .iter()
++                    .map(|&j| &pulses[j])
++                    .filter(|q| q.toa_ns - a.toa_ns >= dup_ns && q.toa_ns - a.toa_ns <= win)
++                    .map(|q| circ_diff(q.doa_deg, a.doa_deg).abs())
++                    .fold(f64::INFINITY, f64::min);
++                if best.is_finite() {
++                    d1.push(best);
++                }
++            }
++            if d1.len() < 20 {
++                return None;
++            }
++            let np = d1.len() + dd.len();
++            Some((o.len() as f64, quantile(&mut d1, 0.5), dd, np, 0.0))
++        })
++        .collect();
++    if per.is_empty() {
++        return DoaCtx::default();
++    }
++    let noise = weighted_median(per.iter().map(|x| (x.1, x.0)).collect());
++    let mut dd: Vec<f64> = per.iter().flat_map(|x| x.2.iter().copied()).collect();
++    let pairs: usize = per.iter().map(|x| x.3).sum();
++    let dup_share = dd.len() as f64 / pairs.max(1) as f64;
++    let dup_diff = if dd.is_empty() { 0.0 } else { quantile(&mut dd, 0.5) };
++    let track_tol = cfg.doa_track_tol_min.max(cfg.doa_tol_k * noise);
++    // two reports of the same pulse that disagree: bearings are not usable
++    // (the same pulse at the same instant: must agree within the moment noise)
++    let dup_bad = dup_share >= 0.05 && dup_diff > cfg.doa_tol_min.max(track_tol);
++    let df = noise <= cfg.df_noise_max && !dup_bad;
++    // bearing drift while a radar is heard: least-squares slope of each
++    // bearing track (>= 20 pulses, >= 10 ms); pulse-weighted median
++    let track_tol = cfg.doa_track_tol_min.max(cfg.doa_tol_k * noise);
++    let slopes: Vec<(f64, f64)> = if df {
++        groups
++            .par_iter()
++            .flat_map_iter(|g| {
++                let o = doa_order(pulses, g);
++                doa_tracks(pulses, &o, track_tol, cfg)
++                    .into_iter()
++                    .filter_map(|t| {
++                        let (t0, t1) = (pulses[t[0]].toa_ns, pulses[*t.last().unwrap()].toa_ns);
++                        if t.len() < 20 || t1 - t0 < 1e7 {
++                            return None;
++                        }
++                        let d0 = pulses[t[0]].doa_deg;
++                        let n = t.len() as f64;
++                        let xs: Vec<f64> = t.iter().map(|&i| (pulses[i].toa_ns - t0) / 1e9).collect();
++                        let ys: Vec<f64> = t.iter().map(|&i| circ_diff(pulses[i].doa_deg, d0)).collect();
++                        let (mx, my) = (xs.iter().sum::<f64>() / n, ys.iter().sum::<f64>() / n);
++                        let sxy: f64 = xs.iter().zip(&ys).map(|(x, y)| (x - mx) * (y - my)).sum();
++                        let sxx: f64 = xs.iter().map(|x| (x - mx) * (x - mx)).sum();
++                        if sxx <= 0.0 {
++                            return None;
++                        }
++                        Some(((sxy / sxx).abs(), n))
++                    })
++                    .collect::<Vec<_>>()
++            })
++            .collect()
++    } else {
++        Vec::new()
++    };
++    // no long track to measure: unknown drift -> treated as spinning (no splits)
++    let rate = if slopes.iter().map(|x| x.1).sum::<f64>() < 200.0 { f64::INFINITY } else { weighted_median(slopes) };
++    DoaCtx {
++        df,
++        fixed: df && rate <= cfg.doa_fixed_rate,
++        noise,
++        rate,
++        track_tol,
++        tol: cfg.doa_tol_min.max(track_tol),
++        dup_diff,
++        dup_share,
++    }
++}
++
++/// TOA-sorted (toa_ns, doa_deg) of a group's pulses with a bearing.
++fn doa_train(pulses: &[FlowPulse], g: &[usize]) -> Vec<(f64, f64)> {
++    doa_order(pulses, g).into_iter().map(|i| (pulses[i].toa_ns, pulses[i].doa_deg)).collect()
++}
++
++/// Bearings of two trains compared at the same moments only: for sampled
++/// pulses of the smaller train, the other train's bearing at that time
++/// (interpolated between its neighbours, both within `doa_win_ms`).
++/// Some(true) = different directions at the same time = different radars.
++/// None = not on air together often enough (no evidence). Bearings seen at
++/// different times are never compared: a spinning direction finder can hear
++/// one radar from several directions (side lobes) on different looks.
++fn doa_differs(a: &[(f64, f64)], b: &[(f64, f64)], ctx: &DoaCtx, cfg: &ClassicCfg, samples: usize) -> Option<bool> {
++    let (a, b) = if a.len() <= b.len() { (a, b) } else { (b, a) };
++    if a.len() < 20 || b.len() < 20 {
++        return None;
++    }
++    let win = cfg.doa_win_ms * 1e6;
++    let n = samples.min(a.len());
++    let mut r = Vec::with_capacity(n);
++    for k in 0..n {
++        let i = if n == 1 { 0 } else { k * (a.len() - 1) / (n - 1) };
++        let (t, d) = a[i];
++        let j = b.partition_point(|x| x.0 < t);
++        if j == 0 || j >= b.len() {
++            continue;
++        }
++        let (p, q) = (b[j - 1], b[j]);
++        if t - p.0 > win || q.0 - t > win || q.0 <= p.0 {
++            continue;
++        }
++        let est = p.1 + circ_diff(q.1, p.1) * (t - p.0) / (q.0 - p.0);
++        r.push(circ_diff(d, est).abs());
++    }
++    if r.len() >= cfg.doa_min_evidence {
++        return Some(quantile(&mut r, 0.5) > ctx.tol);
++    }
++    if ctx.fixed {
++        // fixed direction finder: a radar keeps its bearing, so the whole
++        // trains can be compared even when they are not on air together
++        let ca = circ_median(&a.iter().map(|x| (x.1, 1.0)).collect::<Vec<_>>());
++        let cb = circ_median(&b.iter().map(|x| (x.1, 1.0)).collect::<Vec<_>>());
++        return Some(circ_diff(ca, cb).abs() > ctx.tol);
++    }
++    None
++}
++
++/// Two trains heard from clearly different directions at the same time.
++fn doa_conflict(a: &[(f64, f64)], b: &[(f64, f64)], ctx: &DoaCtx, cfg: &ClassicCfg) -> bool {
++    ctx.df && doa_differs(a, b, ctx, cfg, 300) == Some(true)
++}
++
++/// v3 step C (direction finder): split a group whose pulses come from more
++/// than one direction AT THE SAME TIME. Pulses are walked in time order into
++/// bearing tracks; tracks go into parts (largest first: a track joins the
++/// part with the most same-direction evidence and no conflict; a track with
++/// no evidence either way joins the largest part without conflict; a track
++/// in conflict with every part starts a new one). Parts below
++/// `doa_split_share` of the group (or `min_group`) are kept apart (the
++/// min_group filter drops them) unless `doa_fold_small`.
++fn doa_track_split(pulses: &[FlowPulse], g: Vec<usize>, ctx: &DoaCtx, cfg: &ClassicCfg) -> Vec<Vec<usize>> {
++    // spinning antenna: one radar can show at two bearings (side lobes,
++    // reflections) -> bearings only veto joins, they never split a group
++    if !ctx.fixed || g.len() < 2 * cfg.min_group {
++        return vec![g];
++    }
++    let o = doa_order(pulses, &g);
++    let mut tr: Vec<Vec<usize>> = doa_tracks(pulses, &o, ctx.track_tol, cfg).into_iter().filter(|t| t.len() >= 20).collect();
++    if tr.len() < 2 {
++        return vec![g];
++    }
++    tr.sort_by_key(|t| std::cmp::Reverse(t.len()));
++    let trains: Vec<Vec<(f64, f64)>> =
++        tr.iter().map(|t| t.iter().map(|&i| (pulses[i].toa_ns, pulses[i].doa_deg)).collect()).collect();
++    let mut cl: Vec<Vec<usize>> = Vec::new();
++    for x in 0..tr.len() {
++        let mut pick: Option<(usize, usize)> = None;
++        let mut free: Option<usize> = None;
++        for (c, members) in cl.iter().enumerate() {
++            let (mut same, mut diff) = (0usize, 0usize);
++            for &y in members {
++                match doa_differs(&trains[x], &trains[y], ctx, cfg, 100) {
++                    Some(true) => diff += 1,
++                    Some(false) => same += 1,
++                    None => {}
++                }
++            }
++            if diff > 0 {
++                continue;
++            }
++            if same > 0 && pick.map_or(true, |p| same > p.1) {
++                pick = Some((c, same));
++            }
++            if free.is_none() {
++                free = Some(c);
++            }
++        }
++        match pick.map(|p| p.0).or(free) {
++            Some(c) => cl[c].push(x),
++            None => cl.push(vec![x]),
++        }
++    }
++    if std::env::var("CLASSIC_DOA_DEBUG").is_ok() {
++        eprintln!("DOA split n={} parts {:?}", g.len(), cl.iter().map(|c| c.iter().map(|x| tr[*x].len()).sum::<usize>()).collect::<Vec<_>>());
++    }
++    if cl.len() < 2 {
++        return vec![g];
++    }
++    let mut parts: Vec<Vec<usize>> = cl.iter().map(|c| c.iter().flat_map(|x| tr[*x].iter().copied()).collect()).collect();
++    parts.sort_by_key(|p| std::cmp::Reverse(p.len()));
++    let min_n = (cfg.doa_split_share * g.len() as f64).max(cfg.min_group as f64) as usize;
++    let mut keep: Vec<Vec<usize>> = Vec::new();
++    let mut small: Vec<Vec<usize>> = Vec::new();
++    for p in parts {
++        if keep.is_empty() || p.len() >= min_n {
++            keep.push(p);
++        } else {
++            small.push(p);
++        }
++    }
++    if keep.len() < 2 && (cfg.doa_fold_small || small.is_empty()) {
++        return vec![g];
++    }
++    let placed: std::collections::HashSet<usize> = keep.iter().chain(small.iter()).flatten().copied().collect();
++    if cfg.doa_fold_small {
++        keep[0].extend(small.into_iter().flatten());
++    } else {
++        keep.extend(small);
++    }
++    // fixed direction finder: pulses of short tracks go to the part with the
++    // nearest bearing; pulses without a bearing go to the largest part
++    let cen: Vec<f64> = keep.iter().map(|p| circ_median(&p.iter().map(|&i| (pulses[i].doa_deg, 1.0)).collect::<Vec<_>>())).collect();
++    for &i in &g {
++        if placed.contains(&i) {
++            continue;
++        }
++        let d = pulses[i].doa_deg;
++        let k = if d.is_finite() {
++            (0..cen.len()).min_by(|a, b| circ_diff(d, cen[*a]).abs().partial_cmp(&circ_diff(d, cen[*b]).abs()).unwrap()).unwrap()
++        } else {
++            0
++        };
++        keep[k].push(i);
++    }
++    for p in keep.iter_mut() {
++        p.sort_unstable();
++    }
++    keep
++}
++
++/// v3 step C: two radars of the same type (same pulses, both agile) are one
++/// group after the timing steps; with a direction finder their angles still
++/// differ. Split a group only when its DOA histogram (5 deg bins) holds two
++/// or more tight peaks >= 15 deg apart, each >= 15 % of pulses, and >= 90 %
++/// of all pulses sit within +-1 bin of a peak. Omni / random DOA (flat
++/// histogram) never splits.
++fn doa_split(pulses: &[FlowPulse], g: Vec<usize>) -> Vec<Vec<usize>> {
++    let n = g.len();
++    if n < 100 {
++        return vec![g];
++    }
++    let bin = |i: usize| (((pulses[i].doa_deg % 360.0 + 360.0) % 360.0) / 5.0).floor() as i64 % 72;
++    let mut h = [0usize; 72];
++    for &i in &g {
++        if pulses[i].doa_deg.is_finite() {
++            h[bin(i) as usize] += 1;
++        }
++    }
++    let at = |k: i64| h[k.rem_euclid(72) as usize];
++    let near3 = |k: i64| at(k - 1) + at(k) + at(k + 1);
++    let mut peaks: Vec<i64> = (0..72i64)
++        .filter(|&k| at(k) >= at(k - 1) && at(k) > at(k + 1) && near3(k) as f64 >= 0.15 * n as f64)
++        .collect();
++    peaks.sort_by_key(|k| std::cmp::Reverse(near3(*k)));
++    let mut keep: Vec<i64> = Vec::new();
++    for p in peaks {
++        if keep.iter().all(|q| {
++            let d = (p - q).rem_euclid(72);
++            d.min(72 - d) >= 3
++        }) {
++            keep.push(p);
++        }
++    }
++    let covered: usize = keep.iter().map(|k| near3(*k)).sum();
++    if keep.len() < 2 || (covered as f64) < 0.9 * n as f64 {
++        return vec![g];
++    }
++    let mut out: Vec<Vec<usize>> = vec![Vec::new(); keep.len()];
++    for i in g {
++        let b = bin(i);
++        let k = (0..keep.len())
++            .min_by_key(|j| {
++                let d = (b - keep[*j]).rem_euclid(72);
++                d.min(72 - d)
++            })
++            .unwrap();
++        out[k].push(i);
++    }
++    out
++}
++
++/// Main own gap values of a piece (ns): 2 % log bins holding >= 8 % of its
++/// gaps (at most 6). None when too few gaps or no clear main gap (no evidence).
++fn own_gap_set(pulses: &[FlowPulse], g: &[usize], cfg: &ClassicCfg) -> Option<Vec<f64>> {
++    let ts = sorted_toas(pulses, g);
++    let min_gap = cfg.pri_min_gap_us * 1e3;
++    let mut gp: Vec<f64> = ts.windows(2).map(|w| w[1] - w[0]).filter(|d| *d >= min_gap).collect();
++    if gp.len() < 20 {
++        return None;
++    }
++    // PRI-scale gaps only: long gaps (scan / dwell breaks) are shared by
++    // unrelated radars with the same scan period
++    let p5 = quantile(&mut gp.clone(), 0.05);
++    gp.retain(|d| *d <= 5.0 * p5);
++    if gp.len() < 20 {
++        return None;
++    }
++    let lb = 1.02f64.ln();
++    let mut h: HashMap<i64, usize> = HashMap::new();
++    for d in &gp {
++        *h.entry((d.ln() / lb).round() as i64).or_default() += 1;
++    }
++    let mut c: Vec<(i64, usize)> = h.into_iter().filter(|x| x.1 as f64 >= 0.08 * gp.len() as f64).collect();
++    c.sort_unstable_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
++    if c.is_empty() {
++        return None;
++    }
++    Some(c.iter().take(6).map(|x| (x.0 as f64 * lb).exp()).collect())
++}
++
++/// Quantile of a sorted train's own gaps (ns), duplicates skipped.
++fn own_gap_q(ts: &[f64], cfg: &ClassicCfg, q: f64) -> Option<f64> {
++    let min_gap = cfg.pri_min_gap_us * 1e3;
++    let mut gp: Vec<f64> = ts.windows(2).map(|w| w[1] - w[0]).filter(|d| *d >= min_gap).collect();
++    if gp.len() < 20 {
++        return None;
++    }
++    Some(quantile(&mut gp, q))
++}
++
++/// Merge the pieces' pulses into one train; gap histogram on log bins.
++/// Returns (top-k share of all gaps, per-piece share of its pulses whose
++/// gaps before/after fall in those top-k bins).
++fn train_fit(pulses: &[FlowPulse], groups: &[Vec<usize>], cand: &[usize], cfg: &ClassicCfg) -> (f64, Vec<f64>, Vec<f64>) {
++    let mut t: Vec<(f64, usize)> = Vec::new();
++    for (k, g) in cand.iter().enumerate() {
++        t.extend(groups[*g].iter().map(|&i| (pulses[i].toa_ns, k)));
++    }
++    t.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
++    // the same pulse seen twice (< pri_min_gap) counts once
++    let min_gap = cfg.pri_min_gap_us * 1e3;
++    t.dedup_by(|b, a| b.0 - a.0 < min_gap);
++    if t.len() < 3 {
++        return (0.0, vec![0.0; cand.len()], vec![1.0; cand.len()]);
++    }
++    // shortest own gap (5th pct) over the pieces -> collision distance
++    let mut own_min = f64::INFINITY;
++    for g in cand {
++        let ts = sorted_toas(pulses, &groups[*g]);
++        let mut gp: Vec<f64> = ts.windows(2).map(|w| w[1] - w[0]).filter(|d| *d >= min_gap).collect();
++        if gp.len() >= 20 {
++            own_min = own_min.min(quantile(&mut gp, 0.05));
++        }
++    }
++    // interleaved pieces (n-modal, hops) each have own gaps of N x PRI:
++    // cap by the merged train's median gap (= the PRI for one radar)
++    let mut mg: Vec<f64> = t.windows(2).map(|w| w[1].0 - w[0].0).collect();
++    let med = quantile(&mut mg, 0.5);
++    let thr = if own_min.is_finite() { cfg.coll_rel * own_min.min(med) } else { 0.0 };
++    let (mut hit, mut cnt) = (vec![0.0f64; cand.len()], vec![0.0f64; cand.len()]);
++    for j in 0..t.len() {
++        let k = t[j].1;
++        let near = |o: usize| t[o].1 != k && (t[o].0 - t[j].0).abs() < thr;
++        cnt[k] += 1.0;
++        if (j >= 1 && near(j - 1)) || (j + 1 < t.len() && near(j + 1)) {
++            hit[k] += 1.0;
++        }
++    }
++    let coll: Vec<f64> = hit.iter().zip(&cnt).map(|(h, c)| if *c > 0.0 { h / c } else { 1.0 }).collect();
++    let lb = (1.0 + cfg.reg_bin_rel).ln();
++    let bins: Vec<i64> = t.windows(2).map(|w| ((w[1].0 - w[0].0).max(1.0).ln() / lb).round() as i64).collect();
++    let mut h: HashMap<i64, usize> = HashMap::new();
++    for b in &bins {
++        *h.entry(*b).or_default() += 1;
++    }
++    let mut c: Vec<(i64, usize)> = h.into_iter().collect();
++    c.sort_unstable_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
++    let top: std::collections::HashSet<i64> = c.iter().take(cfg.reg_top).map(|x| x.0).collect();
++    let r = c.iter().take(cfg.reg_top).map(|x| x.1).sum::<usize>() as f64 / bins.len() as f64;
++    let good: Vec<bool> = bins.iter().map(|b| top.contains(b)).collect();
++    let (mut num, mut den) = (vec![0.0f64; cand.len()], vec![0.0f64; cand.len()]);
++    for j in 0..t.len() {
++        let k = t[j].1;
++        if j >= 1 {
++            num[k] += good[j - 1] as u8 as f64;
++            den[k] += 1.0;
++        }
++        if j + 1 < t.len() {
++            num[k] += good[j] as u8 as f64;
++            den[k] += 1.0;
++        }
++    }
++    (r, num.iter().zip(&den).map(|(n, d)| if *d > 0.0 { n / d } else { 0.0 }).collect(), coll)
++}
++
++/// Share of the smaller group's pulses that start while a pulse of the other
++/// group is still on air (TOA within the other's pulse width) — impossible
++/// for one transmitter.
++fn pulse_overlap(pulses: &[FlowPulse], ga: &[usize], gb: &[usize]) -> f64 {
++    let (small, big) = if ga.len() <= gb.len() { (ga, gb) } else { (gb, ga) };
++    let mut bt: Vec<(f64, f64)> = big.iter().map(|&i| (pulses[i].toa_ns, pulses[i].duration_ns)).collect();
++    bt.sort_unstable_by(|x, y| x.0.partial_cmp(&y.0).unwrap());
++    let mut hit = 0usize;
++    for &i in small {
++        let t = pulses[i].toa_ns;
++        let w = pulses[i].duration_ns;
++        let j = bt.partition_point(|x| x.0 <= t);
++        let prev_on = j > 0 && t - bt[j - 1].0 < bt[j - 1].1;
++        let next_on = j < bt.len() && bt[j].0 - t < w;
++        if prev_on || next_on {
++            hit += 1;
++        }
++    }
++    hit as f64 / small.len().max(1) as f64
++}
++
+ fn regroup(groups: Vec<Vec<usize>>, uf: &mut Uf) -> Vec<Vec<usize>> {
+     let mut m: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+     for (i, g) in groups.into_iter().enumerate() {
+@@ -524,6 +1605,172 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++
++    fn fp(toa_us: f64, f_mhz: f64, doa: f64) -> FlowPulse {
++        FlowPulse {
++            input_id: 0,
++            freq_hz: f_mhz * 1e6,
++            power_dbm: -70.0,
++            bandwidth_hz: 1e6,
++            duration_ns: 10_000.0,
++            doa_deg: doa,
++            snr_db: 20.0,
++            toa_ns: toa_us * 1e3,
++            modulation: "lfm_up".into(),
++        }
++    }
++
++    fn v3cfg() -> ClassicCfg {
++        let mut c = ClassicCfg::from_env();
++        c.v3 = true;
++        c
++    }
++
++    /// small deterministic noise in [-a, a]
++    fn jit(i: usize, a: f64) -> f64 {
++        (((i * 7919 + 13) % 1000) as f64 / 999.0 * 2.0 - 1.0) * a
++    }
++
++    #[test]
++    fn doa_ctx_fixed_df_vs_spinning_vs_omni() {
++        let cfg = v3cfg();
++        // fixed DF: radar at 40 deg, noise +-1 deg, 10 s
++        let fixed: Vec<FlowPulse> = (0..3000).map(|i| fp(i as f64 * 1000.0, 3000.0, 40.0 + jit(i, 1.0))).collect();
++        let g = vec![(0..fixed.len()).collect::<Vec<_>>()];
++        let c = doa_ctx(&fixed, &g, &cfg);
++        assert!(c.df && c.fixed, "{c:?}");
++        // spinning antenna: bearing sweeps 300 deg/s during 60 ms looks once a second
++        let mut spin = Vec::new();
++        for look in 0..10 {
++            for k in 0..300 {
++                let t = look as f64 * 1e6 + k as f64 * 200.0; // us
++                spin.push(fp(t, 3000.0, (100.0 + 300.0 * k as f64 * 200.0 / 1e6 - 9.0) % 360.0));
++            }
++        }
++        let g = vec![(0..spin.len()).collect::<Vec<_>>()];
++        let c = doa_ctx(&spin, &g, &cfg);
++        assert!(c.df && !c.fixed, "{c:?}");
++        // omni: bearing random per pulse
++        let omni: Vec<FlowPulse> = (0..3000).map(|i| fp(i as f64 * 1000.0, 3000.0, (((i * i * 7919 + i * 104729) / 7) % 360) as f64)).collect();
++        let g = vec![(0..omni.len()).collect::<Vec<_>>()];
++        assert!(!doa_ctx(&omni, &g, &cfg).df);
++        // two receivers reporting the same pulse with different bearings
++        let mut dup = Vec::new();
++        for i in 0..3000 {
++            dup.push(fp(i as f64 * 1000.0, 3000.0, 80.0 + jit(i, 1.0)));
++            dup.push(fp(i as f64 * 1000.0 + 0.2, 3000.0, 190.0 + jit(i + 1, 1.0)));
++        }
++        let g = vec![(0..dup.len()).collect::<Vec<_>>()];
++        assert!(!doa_ctx(&dup, &g, &cfg).df);
++    }
++
++    #[test]
++    fn doa_differs_needs_same_moment_unless_fixed() {
++        let cfg = v3cfg();
++        let a: Vec<(f64, f64)> = (0..500).map(|i| (i as f64 * 1e6, 40.0 + jit(i, 1.0))).collect();
++        let b_same: Vec<(f64, f64)> = (0..500).map(|i| (i as f64 * 1e6 + 3e5, 41.0 + jit(i + 3, 1.0))).collect();
++        let b_far: Vec<(f64, f64)> = (0..500).map(|i| (i as f64 * 1e6 + 3e5, 120.0 + jit(i + 3, 1.0))).collect();
++        let late: Vec<(f64, f64)> = (0..500).map(|i| (6e8 + i as f64 * 1e6, 120.0)).collect();
++        let mut ctx = DoaCtx { df: true, fixed: false, tol: 6.0, track_tol: 5.0, ..Default::default() };
++        assert_eq!(doa_differs(&a, &b_same, &ctx, &cfg, 300), Some(false));
++        assert_eq!(doa_differs(&a, &b_far, &ctx, &cfg, 300), Some(true));
++        // spinning: trains never on air together -> no evidence
++        assert_eq!(doa_differs(&a, &late, &ctx, &cfg, 300), None);
++        // fixed DF: whole-train bearings compared
++        ctx.fixed = true;
++        assert_eq!(doa_differs(&a, &late, &ctx, &cfg, 300), Some(true));
++    }
++
++    #[test]
++    fn doa_split_two_same_type_radars_fixed_df_only() {
++        let cfg = v3cfg();
++        // identical radars interleaved, bearings 40 and 200
++        let mut ps = Vec::new();
++        for i in 0..2000 {
++            ps.push(fp(i as f64 * 1000.0, 3000.0, 40.0 + jit(i, 1.0)));
++            ps.push(fp(i as f64 * 1000.0 + 377.0, 3000.0, 200.0 + jit(i + 5, 1.0)));
++        }
++        let g: Vec<usize> = (0..ps.len()).collect();
++        let fixed = DoaCtx { df: true, fixed: true, tol: 6.0, track_tol: 5.0, ..Default::default() };
++        let parts = doa_track_split(&ps, g.clone(), &fixed, &cfg);
++        assert_eq!(parts.len(), 2);
++        for p in &parts {
++            let b0 = ps[p[0]].doa_deg;
++            assert!(p.iter().all(|&i| circ_diff(ps[i].doa_deg, b0).abs() < 10.0));
++        }
++        // spinning DF: never split (side lobes)
++        let spin = DoaCtx { fixed: false, ..fixed };
++        assert_eq!(doa_track_split(&ps, g, &spin, &cfg).len(), 1);
++    }
++
++    #[test]
++    fn library_name_needs_the_radars_pri() {
++        // built-in MF03 rule: carrier 2898-2905 MHz, PRI 294 us
++        let name = |pri: f64, cfg: &ClassicCfg| {
++            let v: Vec<FlowPulse> = (1..=500).map(|i| fp(i as f64 * pri, 2900.0, 0.0)).collect();
++            let ps: Vec<&FlowPulse> = v.iter().collect();
++            let ts: Vec<f64> = v.iter().map(|p| p.toa_ns).collect();
++            library_id(&ps, &ts, cfg)
++        };
++        let v3 = v3cfg();
++        assert_eq!(name(294.0, &v3), Some(1113));
++        assert_eq!(name(300.0, &v3), Some(1113)); // 2 %: same radar
++        assert_eq!(name(350.0, &v3), None); // look-alike on MF03's carrier: unknown
++        let mut off = v3cfg();
++        off.name_pri_tol = 0.0;
++        assert_eq!(name(350.0, &off), Some(1113)); // check switched off
++        let mut v2 = v3cfg();
++        v2.v3 = false;
++        assert_eq!(name(350.0, &v2), Some(1113)); // v2 naming unchanged
++    }
++
++    #[test]
++    fn freq_mode_labels() {
++        let fixed: Vec<FlowPulse> = (0..200).map(|i| fp(i as f64 * 1000.0, 3000.0, 0.0)).collect();
++        let slide: Vec<FlowPulse> = (0..200).map(|i| fp(i as f64 * 1000.0, 3000.0 + i as f64 * 0.3, 0.0)).collect();
++        let burst: Vec<FlowPulse> = (0..200).map(|i| fp(i as f64 * 1000.0, 3000.0 + 20.0 * ((i / 20) % 4) as f64, 0.0)).collect();
++        let modal: Vec<FlowPulse> = (0..200).map(|i| fp(i as f64 * 1000.0, 3000.0 + 20.0 * (i % 2) as f64, 0.0)).collect();
++        let r = |v: &Vec<FlowPulse>| freq_mode(&v.iter().collect::<Vec<_>>());
++        assert_eq!(r(&fixed), "fixed");
++        assert_eq!(r(&slide), "sliding");
++        assert_eq!(r(&burst), "burst");
++        assert_eq!(r(&modal), "n_modal");
++    }
++
++    #[test]
++    fn hops_of_one_radar_fit_one_train_other_radar_collides() {
++        // one radar, PRI 1000 us, hopping over 4 carriers in random order
++        let mut ps: Vec<FlowPulse> = Vec::new();
++        let mut s = 12345u64;
++        for i in 0..2000 {
++            s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
++            ps.push(fp(i as f64 * 1000.0, 3000.0 + 50.0 * ((s >> 33) % 4) as f64, 0.0));
++        }
++        // a different radar, same pulses, PRI 1370 us, own carrier
++        for i in 0..1400 {
++            ps.push(fp(333.0 + i as f64 * 1370.0, 3400.0, 0.0));
++        }
++        let cfg = v3cfg();
++        let mut groups: Vec<Vec<usize>> = vec![Vec::new(); 5];
++        for (i, p) in ps.iter().enumerate() {
++            let k = if p.freq_hz >= 3.39e9 { 4 } else { ((p.freq_hz / 1e6 - 3000.0) / 50.0).round() as usize };
++            groups[k].push(i);
++        }
++        let (r, fit, coll) = train_fit(&ps, &groups, &[0, 1, 2, 3], &cfg);
++        assert!(r > 0.9 && fit.iter().all(|f| *f > 0.9) && coll.iter().all(|c| *c == 0.0), "{r} {fit:?} {coll:?}");
++        let (_, _, coll) = train_fit(&ps, &groups, &[0, 1, 2, 3, 4], &cfg);
++        assert!(coll[4] > 0.3, "other radar must collide: {coll:?}");
++    }
++
++    #[test]
++    fn doa_split_only_on_tight_bimodal_angles() {
++        let two: Vec<FlowPulse> = (0..400).map(|i| fp(i as f64 * 100.0, 3000.0, if i % 2 == 0 { 40.0 } else { 120.0 })).collect();
++        let g: Vec<usize> = (0..400).collect();
++        assert_eq!(doa_split(&two, g.clone()).len(), 2);
++        // omni: angle random per pulse -> never split
++        let omni: Vec<FlowPulse> = (0..400).map(|i| fp(i as f64 * 100.0, 3000.0, (i * 137 % 360) as f64)).collect();
++        assert_eq!(doa_split(&omni, g).len(), 1);
++    }
+ 
+     fn train(start_us: f64, pri_us: f64, n: usize) -> Vec<f64> {
+         (0..n).map(|i| (start_us + pri_us * i as f64) * 1e3).collect()
+diff -ruN a/pipeline/src/lib.rs b/pipeline/src/lib.rs
+--- a/pipeline/src/lib.rs	2026-11-18 12:34:16
++++ b/pipeline/src/lib.rs	2026-11-18 12:34:16
+@@ -32,6 +32,8 @@
+ pub mod onnx_predict;
+ pub mod onnx_flow;
+ pub mod classic_v2;
++pub mod pri_pattern;
++pub mod signature;
+ pub mod layer_timing;
+ pub mod refresh_api_core;
+ 
+diff -ruN a/pipeline/src/pri_pattern.rs b/pipeline/src/pri_pattern.rs
+--- a/pipeline/src/pri_pattern.rs	1970-01-01 04:00:00
++++ b/pipeline/src/pri_pattern.rs	2026-11-18 12:34:17
+@@ -0,0 +1,540 @@
++//! PRI pattern of one emitter's pulse train, from TOA only (report label;
++//! it never changes grouping).
++//!
++//! Steps:
++//!  1. Sort TOAs, drop duplicate pulses (< `DUP_US` after the previous kept
++//!     pulse: the same pulse seen by two receivers).
++//!  2. Gaps between kept pulses. Sorted gaps are split into clusters where
++//!     two neighbours differ by more than `tol` (relative, adaptive to the
++//!     number of gaps). Clusters with < 1 % of gaps are ignored.
++//!  3. Primary levels vs harmonics: clusters are taken from the smallest up.
++//!     A cluster is a harmonic (missing pulse) when its value is a sum of
++//!     2-4 primary levels AND it rarely follows itself AND it holds fewer
++//!     gaps than the primaries. Otherwise it is a primary level.
++//!  4. Type:
++//!     - smallest primary is wide (spread > `WIDE`): continuous PRI.
++//!       Consecutive gaps close to each other (small step vs spread) =
++//!       `sliding`, otherwise `jitter` (jitter % = half-width of the spread).
++//!     - one narrow primary: `constant`.
++//!     - several narrow primaries: a gap usually followed by the same level
++//!       = `dwell_switch`; else the shortest repeat k of the level sequence =
++//!       `stagger` (elements in order, starting at the smallest; period = sum).
++//!     - anything else: `complex`.
++//!  5. Missing pulses: gaps outside the primary levels, counted as whole
++//!     multiples of the mean PRI.
++use serde::Serialize;
++
++/// Two pulses closer than this (µs) are one pulse seen twice.
++pub const DUP_US: f64 = 1.0;
++/// Fewer gaps than this: no pattern (`too_few`).
++pub const MIN_GAPS: usize = 16;
++/// Cluster half-width (relative) above which a level is a continuous spread.
++pub const WIDE: f64 = 0.005;
++
++#[derive(Debug, Clone, Serialize, PartialEq)]
++pub struct Stagger {
++    pub period_us: f64,
++    /// one period, in pulse order, starting at the smallest element
++    pub elements_us: Vec<f64>,
++}
++
++#[derive(Debug, Clone, Serialize, PartialEq)]
++pub struct Dwell {
++    /// dwell PRIs, smallest first
++    pub pris_us: Vec<f64>,
++    /// median number of gaps (pulses) per dwell
++    pub dwell_pulses: f64,
++    /// median dwell length in time
++    pub dwell_us: f64,
++}
++
++#[derive(Debug, Clone, Serialize, PartialEq)]
++pub struct Sliding {
++    pub min_us: f64,
++    pub max_us: f64,
++    /// median PRI change from one pulse to the next
++    pub step_us: f64,
++    /// pulses to cross the whole range
++    pub ramp_pulses: f64,
++}
++
++#[derive(Debug, Clone, Serialize, PartialEq)]
++pub struct PriPattern {
++    /// constant | jitter | stagger | dwell_switch | sliding | complex | too_few
++    pub kind: &'static str,
++    /// fundamental (constant), mean (jitter / sliding / dwell), period / k (stagger)
++    pub pri_us: f64,
++    /// half-width of the PRI spread around the mean, % (jitter; ~0 for sharp levels)
++    pub jitter_pct: f64,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub stagger: Option<Stagger>,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub dwell: Option<Dwell>,
++    #[serde(skip_serializing_if = "Option::is_none")]
++    pub sliding: Option<Sliding>,
++    /// primary gap levels (µs), smallest first
++    pub levels_us: Vec<f64>,
++    /// gap levels explained as sums of primaries (missing pulses), µs
++    pub harmonics_us: Vec<f64>,
++    /// estimated share of pulses not received, %
++    pub missing_pct: f64,
++    pub dup_skipped: usize,
++    pub n_gaps: usize,
++}
++
++impl PriPattern {
++    fn empty(kind: &'static str, dup: usize, n_gaps: usize) -> Self {
++        PriPattern {
++            kind,
++            pri_us: f64::NAN,
++            jitter_pct: f64::NAN,
++            stagger: None,
++            dwell: None,
++            sliding: None,
++            levels_us: vec![],
++            harmonics_us: vec![],
++            missing_pct: 0.0,
++            dup_skipped: dup,
++            n_gaps,
++        }
++    }
++}
++
++#[derive(Debug, Clone)]
++struct Cluster {
++    lo: f64,
++    hi: f64,
++    med: f64,
++    n: usize,
++    /// (q95 - q05) / (2 * median)
++    w: f64,
++}
++
++fn q_sorted(s: &[f64], f: f64) -> f64 {
++    if s.is_empty() {
++        return f64::NAN;
++    }
++    let x = (s.len() - 1) as f64 * f;
++    let (i, fr) = (x.floor() as usize, x - x.floor());
++    if i + 1 < s.len() {
++        s[i] + (s[i + 1] - s[i]) * fr
++    } else {
++        s[i]
++    }
++}
++
++fn sorted(v: impl Iterator<Item = f64>) -> Vec<f64> {
++    let mut s: Vec<f64> = v.collect();
++    s.sort_by(|a, b| a.partial_cmp(b).unwrap());
++    s
++}
++
++fn clusters(g: &[f64], tol: f64) -> Vec<Cluster> {
++    let s = sorted(g.iter().copied());
++    let mut out = Vec::new();
++    let mut a = 0;
++    for i in 1..=s.len() {
++        if i == s.len() || s[i] > s[i - 1] * (1.0 + tol) {
++            let seg = &s[a..i];
++            let med = q_sorted(seg, 0.5);
++            out.push(Cluster {
++                lo: seg[0],
++                hi: seg[seg.len() - 1],
++                med,
++                n: seg.len(),
++                w: (q_sorted(seg, 0.95) - q_sorted(seg, 0.05)) / (2.0 * med),
++            });
++            a = i;
++        }
++    }
++    out
++}
++
++/// Is `x` a sum of 2..=4 values from `prim` (repetition allowed) within `tol`?
++fn is_sum(x: f64, prim: &[f64], tol: f64) -> bool {
++    fn rec(x: f64, prim: &[f64], start: usize, k: usize, acc: f64, tol: f64) -> bool {
++        if k >= 2 && (acc - x).abs() <= tol * x {
++            return true;
++        }
++        if k == 4 || acc > x * (1.0 + tol) {
++            return false;
++        }
++        (start..prim.len()).any(|j| rec(x, prim, j, k + 1, acc + prim[j], tol))
++    }
++    rec(x, prim, 0, 0, 0.0, tol)
++}
++
++/// Pattern of one pulse train. `toas_ns` need not be sorted.
++pub fn analyze(toas_ns: &[f64]) -> PriPattern {
++    let t = sorted(toas_ns.iter().filter(|x| x.is_finite()).map(|x| x / 1e3));
++    let mut kept: Vec<f64> = Vec::with_capacity(t.len());
++    let mut dup = 0usize;
++    for x in t {
++        if let Some(&l) = kept.last() {
++            if x - l < DUP_US {
++                dup += 1;
++                continue;
++            }
++        }
++        kept.push(x);
++    }
++    let g: Vec<f64> = kept.windows(2).map(|w| w[1] - w[0]).collect();
++    let n = g.len();
++    if n < MIN_GAPS {
++        return PriPattern::empty("too_few", dup, n);
++    }
++    // neighbour split tolerance: 0.3 %, wider for short trains so a jittered
++    // train with few gaps is not cut into many pieces
++    let tol = (3.0 / n as f64).clamp(0.003, 0.02);
++    let all = clusters(&g, tol);
++    let min_n = ((n as f64) * 0.01).ceil().max(3.0) as usize;
++    let sig: Vec<Cluster> = all.into_iter().filter(|c| c.n >= min_n).collect();
++    if sig.is_empty() {
++        let mut p = PriPattern::empty("complex", dup, n);
++        p.pri_us = q_sorted(&sorted(g.iter().copied()), 0.5);
++        return p;
++    }
++    // label of each gap = index into `sig`
++    let lab: Vec<Option<usize>> = g
++        .iter()
++        .map(|&x| sig.iter().position(|c| x >= c.lo && x <= c.hi))
++        .collect();
++    let self_follow = |c: usize| {
++        let (mut a, mut b) = (0usize, 0usize);
++        for i in 0..n - 1 {
++            if lab[i] == Some(c) {
++                b += 1;
++                if lab[i + 1] == Some(c) {
++                    a += 1;
++                }
++            }
++        }
++        if b == 0 { 0.0 } else { a as f64 / b as f64 }
++    };
++    // primary levels vs harmonics, smallest first
++    let mut prim: Vec<usize> = Vec::new();
++    let mut harm: Vec<usize> = Vec::new();
++    for (ci, c) in sig.iter().enumerate() {
++        if prim.is_empty() {
++            prim.push(ci);
++            continue;
++        }
++        let pv: Vec<f64> = prim.iter().map(|&p| sig[p].med).collect();
++        let max_n = prim.iter().map(|&p| sig[p].n).max().unwrap_or(0);
++        let c0 = &sig[prim[0]];
++        // a sum of 2-4 gaps: sharp levels -> exact sums; a wide (continuous)
++        // smallest level -> anywhere in its 2x..4x range
++        let summed = if c0.w > WIDE {
++            c.med >= 2.0 * c0.lo * 0.98 && c.med <= 4.0 * c0.hi * 1.02
++        } else {
++            prim.len() <= 16 && is_sum(c.med, &pv, 0.015)
++        };
++        if summed && self_follow(ci) < 0.5 && (c.n as f64) < 0.6 * max_n as f64 {
++            harm.push(ci);
++        } else {
++            prim.push(ci);
++        }
++    }
++    let is_prim: Vec<bool> = (0..sig.len()).map(|i| prim.contains(&i)).collect();
++    let plab: Vec<Option<usize>> = lab.iter().map(|l| l.filter(|&c| is_prim[c])).collect();
++    let mut p = PriPattern::empty("complex", dup, n);
++    p.levels_us = prim.iter().map(|&c| sig[c].med).collect();
++    p.harmonics_us = harm.iter().map(|&c| sig[c].med).collect();
++    let c0 = &sig[prim[0]];
++    let gaps_in = |c: usize| sorted(g.iter().zip(&lab).filter(|(_, l)| **l == Some(c)).map(|(x, _)| *x));
++    if c0.w > WIDE {
++        let s0 = gaps_in(prim[0]);
++        let mean = s0.iter().sum::<f64>() / s0.len() as f64;
++        p.pri_us = mean;
++        if prim.len() == 1 {
++            let mut steps = Vec::new();
++            for i in 0..n - 1 {
++                if lab[i] == Some(prim[0]) && lab[i + 1] == Some(prim[0]) {
++                    steps.push((g[i + 1] - g[i]).abs());
++                }
++            }
++            let steps = sorted(steps.into_iter());
++            let iqr = q_sorted(&s0, 0.75) - q_sorted(&s0, 0.25);
++            let step = q_sorted(&steps, 0.5);
++            let (lo, hi) = (q_sorted(&s0, 0.02), q_sorted(&s0, 0.98));
++            if iqr > 0.0 && step / iqr < 0.25 {
++                p.kind = "sliding";
++                p.jitter_pct = 0.0;
++                p.sliding = Some(Sliding { min_us: lo, max_us: hi, step_us: step, ramp_pulses: if step > 0.0 { (hi - lo) / step } else { f64::INFINITY } });
++            } else {
++                p.kind = "jitter";
++                p.jitter_pct = (q_sorted(&s0, 0.975) - q_sorted(&s0, 0.025)) / 2.0 / mean * 100.0 / 0.95;
++            }
++        }
++    } else if prim.iter().any(|&c| sig[c].w > WIDE) {
++        p.pri_us = c0.med;
++        if let Some((m, sl)) = smooth_sliding(&g, &plab, prim.len()) {
++            p.kind = "sliding";
++            p.pri_us = m;
++            p.sliding = Some(sl);
++        }
++    } else if prim.len() == 1 {
++        p.kind = "constant";
++        p.pri_us = c0.med;
++        p.jitter_pct = c0.w * 100.0;
++    } else {
++        let k_lv = prim.len();
++        p.jitter_pct = prim.iter().map(|&c| sig[c].w).fold(0.0, f64::max) * 100.0;
++        // same level as the previous gap (both primary)
++        let (mut same, mut pairs) = (0usize, 0usize);
++        for i in 0..n - 1 {
++            if let (Some(a), Some(b)) = (plab[i], plab[i + 1]) {
++                pairs += 1;
++                same += (a == b) as usize;
++            }
++        }
++        let s1 = if pairs == 0 { 0.0 } else { same as f64 / pairs as f64 };
++        if s1 >= 0.6 {
++            p.kind = "dwell_switch";
++            let (runs, times) = dwell_runs(&g, &plab, &sig);
++            let (rs, ts) = (sorted(runs.into_iter()), sorted(times.into_iter()));
++            let pris: Vec<f64> = p.levels_us.clone();
++            p.pri_us = pris.iter().sum::<f64>() / k_lv as f64;
++            p.dwell = Some(Dwell { pris_us: pris, dwell_pulses: q_sorted(&rs, 0.5), dwell_us: q_sorted(&ts, 0.5) });
++        } else if let Some((k, el)) = stagger_period(&plab, &sig) {
++            p.kind = "stagger";
++            let period: f64 = el.iter().sum();
++            p.pri_us = period / k as f64;
++            p.stagger = Some(Stagger { period_us: period, elements_us: el });
++        } else {
++            p.pri_us = c0.med;
++            if let Some((m, sl)) = smooth_sliding(&g, &plab, k_lv) {
++                p.kind = "sliding";
++                p.pri_us = m;
++                p.sliding = Some(sl);
++            }
++        }
++    }
++    // missing pulses: non-primary gaps as whole multiples of the mean PRI
++    if p.pri_us.is_finite() && p.pri_us > 0.0 {
++        let mut miss = 0.0;
++        for (x, l) in g.iter().zip(&plab) {
++            if l.is_none() {
++                let k = (x / p.pri_us).round();
++                if k >= 2.0 {
++                    miss += k - 1.0;
++                }
++            }
++        }
++        p.missing_pct = miss / (n as f64 + miss) * 100.0;
++    }
++    p
++}
++
++/// Many levels (>= 6) visited in a smooth order: a sliding PRI whose steps
++/// repeat every ramp. Step between consecutive primary gaps small vs their
++/// spread (median |step| < 0.25 IQR). Returns (mean PRI, sliding).
++fn smooth_sliding(g: &[f64], plab: &[Option<usize>], k_lv: usize) -> Option<(f64, Sliding)> {
++    if k_lv < 6 {
++        return None;
++    }
++    let n = g.len();
++    let s0 = sorted(g.iter().zip(plab).filter(|(_, l)| l.is_some()).map(|(x, _)| *x));
++    let mut steps = Vec::new();
++    for i in 0..n - 1 {
++        if plab[i].is_some() && plab[i + 1].is_some() {
++            steps.push((g[i + 1] - g[i]).abs());
++        }
++    }
++    let steps = sorted(steps.into_iter());
++    let iqr = q_sorted(&s0, 0.75) - q_sorted(&s0, 0.25);
++    let step = q_sorted(&steps, 0.5);
++    if !(iqr > 0.0 && step / iqr < 0.25) {
++        return None;
++    }
++    let (lo, hi) = (q_sorted(&s0, 0.02), q_sorted(&s0, 0.98));
++    let mean = s0.iter().sum::<f64>() / s0.len() as f64;
++    Some((mean, Sliding { min_us: lo, max_us: hi, step_us: step, ramp_pulses: if step > 0.0 { (hi - lo) / step } else { f64::INFINITY } }))
++}
++
++/// Dwell runs: (gaps per complete run, run time µs). A non-primary gap that
++/// is a whole multiple of the current level continues the run (missing
++/// pulses); anything else breaks it. First and last runs are partial: dropped.
++fn dwell_runs(g: &[f64], plab: &[Option<usize>], sig: &[Cluster]) -> (Vec<f64>, Vec<f64>) {
++    let mut runs = Vec::new();
++    let mut times = Vec::new();
++    let mut cur: Option<usize> = None;
++    let (mut cnt, mut tm, mut clean, mut first) = (0.0, 0.0, true, true);
++    let mut close = |cnt: f64, tm: f64, clean: bool, first: bool, runs: &mut Vec<f64>, times: &mut Vec<f64>| {
++        if !first && clean && cnt > 0.0 {
++            runs.push(cnt);
++            times.push(tm);
++        }
++    };
++    for (i, &x) in g.iter().enumerate() {
++        match (plab[i], cur) {
++            (Some(c), Some(cc)) if c == cc => {
++                cnt += 1.0;
++                tm += x;
++            }
++            (Some(c), _) => {
++                if cur.is_some() {
++                    close(cnt, tm, clean, first, &mut runs, &mut times);
++                    first = false;
++                }
++                cur = Some(c);
++                cnt = 1.0;
++                tm = x;
++                clean = true;
++            }
++            (None, Some(cc)) => {
++                let m = sig[cc].med;
++                let k = (x / m).round();
++                if k >= 1.0 && (x - k * m).abs() <= 0.02 * x {
++                    cnt += k;
++                    tm += x;
++                } else {
++                    clean = false;
++                    cnt += 1.0;
++                    tm += x;
++                }
++            }
++            (None, None) => {}
++        }
++    }
++    // last run is partial: not closed
++    (runs, times)
++}
++
++/// Shortest k (2..=16) with level[i] == level[i+k] on >= 85 % of contiguous
++/// primary stretches; returns (k, elements in order starting at the smallest).
++fn stagger_period(plab: &[Option<usize>], sig: &[Cluster]) -> Option<(usize, Vec<f64>)> {
++    let n = plab.len();
++    // run_len[i] = number of consecutive primary labels starting at i
++    let mut run_len = vec![0usize; n + 1];
++    for i in (0..n).rev() {
++        run_len[i] = if plab[i].is_some() { run_len[i + 1] + 1 } else { 0 };
++    }
++    for k in 2..=16usize {
++        let (mut ok, mut tot) = (0usize, 0usize);
++        for i in 0..n {
++            if run_len[i] > k {
++                tot += 1;
++                ok += (plab[i] == plab[i + k]) as usize;
++            }
++        }
++        if tot >= 10 && ok as f64 >= 0.85 * tot as f64 {
++            // most common window of k labels, rotated to a canonical phase
++            let mut counts: std::collections::HashMap<Vec<usize>, usize> = Default::default();
++            for i in 0..n {
++                if run_len[i] >= k {
++                    let w: Vec<usize> = (0..k).map(|j| plab[i + j].unwrap()).collect();
++                    *counts.entry(canon(&w, sig)).or_default() += 1;
++                }
++            }
++            let best = counts.into_iter().max_by(|a, b| a.1.cmp(&b.1).then_with(|| b.0.cmp(&a.0)))?.0;
++            return Some((k, best.iter().map(|&c| sig[c].med).collect()));
++        }
++    }
++    None
++}
++
++/// Rotation of a window starting at the smallest value; ties -> smallest
++/// value sequence (lexicographic).
++fn canon(w: &[usize], sig: &[Cluster]) -> Vec<usize> {
++    let k = w.len();
++    (0..k)
++        .map(|r| (0..k).map(|j| w[(r + j) % k]).collect::<Vec<usize>>())
++        .min_by(|a, b| {
++            let va: Vec<f64> = a.iter().map(|&c| sig[c].med).collect();
++            let vb: Vec<f64> = b.iter().map(|&c| sig[c].med).collect();
++            va.partial_cmp(&vb).unwrap()
++        })
++        .unwrap()
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use rand::{Rng, SeedableRng};
++
++    fn train(gaps_us: impl Iterator<Item = f64>, miss: f64, seed: u64) -> Vec<f64> {
++        let mut r = rand::rngs::StdRng::seed_from_u64(seed);
++        let mut t = 0.0;
++        let mut out = Vec::new();
++        for g in gaps_us {
++            t += g * (1.0 + r.gen_range(-0.0005..0.0005));
++            if r.gen::<f64>() >= miss {
++                out.push(t * 1e3);
++            }
++        }
++        out
++    }
++
++    #[test]
++    fn constant_with_missing_pulses() {
++        let p = analyze(&train(std::iter::repeat(1000.0).take(3000), 0.15, 1));
++        assert_eq!(p.kind, "constant");
++        assert!((p.pri_us - 1000.0).abs() < 2.0, "{p:?}");
++        assert!(p.harmonics_us.iter().any(|h| (h - 2000.0).abs() < 20.0));
++        assert!((p.missing_pct - 15.0).abs() < 3.0, "{}", p.missing_pct);
++    }
++
++    #[test]
++    fn jitter_ten_percent() {
++        let mut r = rand::rngs::StdRng::seed_from_u64(2);
++        let g: Vec<f64> = (0..3000).map(|_| 800.0 * (1.0 + r.gen_range(-0.10..0.10))).collect();
++        let p = analyze(&train(g.into_iter(), 0.05, 3));
++        assert_eq!(p.kind, "jitter", "{p:?}");
++        assert!((p.jitter_pct - 10.0).abs() < 1.5, "{}", p.jitter_pct);
++        assert!((p.pri_us - 800.0).abs() < 10.0);
++    }
++
++    #[test]
++    fn stagger_with_repeat_and_missing() {
++        let el = [700.0, 700.0, 910.0, 820.0];
++        let p = analyze(&train(el.iter().cycle().take(4000).copied(), 0.1, 4));
++        assert_eq!(p.kind, "stagger", "{p:?}");
++        let s = p.stagger.unwrap();
++        assert!((s.period_us - 3130.0).abs() < 5.0);
++        let want = [700.0, 700.0, 910.0, 820.0];
++        assert_eq!(s.elements_us.len(), 4);
++        for (a, b) in s.elements_us.iter().zip(want) {
++            assert!((a - b).abs() < 3.0, "{:?}", s.elements_us);
++        }
++    }
++
++    #[test]
++    fn dwell_switch_three_levels() {
++        let pris = [500.0, 1300.0, 900.0];
++        let g = (0..60).flat_map(|d| std::iter::repeat(pris[d % 3]).take(40));
++        let p = analyze(&train(g, 0.05, 5));
++        assert_eq!(p.kind, "dwell_switch", "{p:?}");
++        let d = p.dwell.unwrap();
++        assert_eq!(d.pris_us.len(), 3);
++        assert!((d.dwell_pulses - 40.0).abs() <= 2.0, "{}", d.dwell_pulses);
++    }
++
++    #[test]
++    fn sliding_sawtooth() {
++        let g = (0..3000).map(|i| 1000.0 + 400.0 * ((i % 200) as f64 / 200.0));
++        let p = analyze(&train(g, 0.05, 6));
++        assert_eq!(p.kind, "sliding", "{p:?}");
++        let s = p.sliding.unwrap();
++        assert!(s.min_us < 1020.0 && s.max_us > 1370.0, "{s:?}");
++    }
++
++    #[test]
++    fn sliding_fast_ramp_repeating_steps() {
++        // 62-pulse ramp: every step value repeats each ramp (sharp levels)
++        let g = (0..6000).map(|i| 830.0 + 424.0 * ((i % 62) as f64 / 62.0));
++        let p = analyze(&train(g, 0.2, 8));
++        assert_eq!(p.kind, "sliding", "{:?}", p.kind);
++    }
++
++    #[test]
++    fn duplicates_skipped_and_too_few() {
++        let mut t = train(std::iter::repeat(1000.0).take(500), 0.0, 7);
++        let d: Vec<f64> = t.iter().map(|x| x + 300.0).collect(); // +0.3 µs copies
++        t.extend(d);
++        let p = analyze(&t);
++        assert_eq!(p.kind, "constant");
++        assert!(p.dup_skipped >= 490);
++        assert_eq!(analyze(&[0.0, 1e6, 2e6]).kind, "too_few");
++    }
++}
+diff -ruN a/pipeline/src/signature.rs b/pipeline/src/signature.rs
+--- a/pipeline/src/signature.rs	1970-01-01 04:00:00
++++ b/pipeline/src/signature.rs	2026-11-18 12:34:17
+@@ -0,0 +1,158 @@
++//! Measured signature of one emitter group (report output for unknown and
++//! known radars alike). Built from measured PDW fields only — the CSV's
++//! ground-truth `emitter_id` / generator PRI are never read.
++//!
++//! Units: MHz, us, deg.
++//! - `pri_fund_us`: shortest well-populated pulse gap (see [`pri_fund_us`]),
++//!   so a staggered or jittered train reports its base interval, not a harmonic.
++//! - `pri_mode_us`: most frequent 1-us gap.
++//! - `doa_spread_deg`: narrowest arc holding 80 % of the angles (circular;
++//!   near 288+ = omni / no direction finding).
++use std::collections::{BTreeMap, HashMap};
++
++use crate::classic_v2::freq_mode;
++use crate::onnx_flow::FlowPulse;
++
++#[derive(serde::Serialize, Debug, Clone)]
++pub struct Signature {
++    pub n: usize,
++    pub fmode: &'static str,
++    pub f_q5_mhz: f64,
++    pub f_q95_mhz: f64,
++    pub pw_med_us: f64,
++    pub bw_med_mhz: f64,
++    pub modulation: String,
++    pub mod_share: f64,
++    pub pri_mode_us: f64,
++    pub pri_fund_us: f64,
++    pub doa_spread_deg: f64,
++}
++
++/// 1-us gap histogram of a TOA-sorted train (ns); gaps below `min_gap_us`
++/// (the same pulse seen twice) are skipped.
++fn gap_hist(toas: &[f64], min_gap_us: f64) -> BTreeMap<i64, usize> {
++    let mut h: BTreeMap<i64, usize> = BTreeMap::new();
++    for w in toas.windows(2) {
++        let d = (w[1] - w[0]) / 1e3;
++        if d >= min_gap_us.max(0.5) {
++            *h.entry(d.round() as i64).or_default() += 1;
++        }
++    }
++    h
++}
++
++/// PRI fundamental (us) of a TOA-sorted train (ns): the shortest gap whose
++/// +-1 us neighbourhood holds >= 25 % of the busiest one. NaN: no gaps.
++pub fn pri_fund_us(toas: &[f64], min_gap_us: f64) -> f64 {
++    let h = gap_hist(toas, min_gap_us);
++    let near = |k: i64| (k - 1..=k + 1).map(|j| *h.get(&j).unwrap_or(&0)).sum::<usize>();
++    let top = h.keys().map(|k| near(*k)).max().unwrap_or(0);
++    h.keys()
++        .find(|k| top > 0 && near(**k) as f64 >= 0.25 * top as f64)
++        .map(|k| *k as f64)
++        .unwrap_or(f64::NAN)
++}
++
++fn quantile(mut v: Vec<f64>, q: f64) -> f64 {
++    v.retain(|x| x.is_finite());
++    if v.is_empty() {
++        return f64::NAN;
++    }
++    v.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
++    let pos = q * (v.len() - 1) as f64;
++    let (lo, hi) = (pos.floor() as usize, pos.ceil() as usize);
++    v[lo] + (v[hi] - v[lo]) * (pos - lo as f64)
++}
++
++pub fn signature(ps: &[&FlowPulse], min_gap_us: f64) -> Signature {
++    let n = ps.len();
++    let mut c: HashMap<String, usize> = HashMap::new();
++    for p in ps {
++        *c.entry(p.modulation.trim().to_ascii_lowercase()).or_default() += 1;
++    }
++    let (modulation, mc) = c.into_iter().max_by(|a, b| a.1.cmp(&b.1).then(b.0.cmp(&a.0))).unwrap_or_default();
++    let mut t: Vec<f64> = ps.iter().map(|p| p.toa_ns).filter(|x| x.is_finite()).collect();
++    t.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
++    let h = gap_hist(&t, min_gap_us);
++    let pri_mode_us = h.iter().max_by(|a, b| a.1.cmp(b.1).then(b.0.cmp(a.0))).map(|x| *x.0 as f64).unwrap_or(f64::NAN);
++    let mut d: Vec<f64> = ps.iter().map(|p| p.doa_deg).filter(|x| x.is_finite()).map(|x| x.rem_euclid(360.0)).collect();
++    d.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
++    let doa_spread_deg = if d.len() < 5 {
++        f64::NAN
++    } else {
++        let m = d.len();
++        let k = ((m as f64) * 0.8).ceil() as usize;
++        (0..m)
++            .map(|i| {
++                let j = i + k - 1;
++                if j < m { d[j] - d[i] } else { d[j - m] + 360.0 - d[i] }
++            })
++            .fold(360.0, f64::min)
++    };
++    let f: Vec<f64> = ps.iter().map(|p| p.freq_hz / 1e6).collect();
++    Signature {
++        n,
++        fmode: if n == 0 { "unknown" } else { freq_mode(ps) },
++        f_q5_mhz: quantile(f.clone(), 0.05),
++        f_q95_mhz: quantile(f, 0.95),
++        pw_med_us: quantile(ps.iter().map(|p| p.duration_ns / 1e3).collect(), 0.5),
++        bw_med_mhz: quantile(ps.iter().map(|p| p.bandwidth_hz / 1e6).collect(), 0.5),
++        modulation,
++        mod_share: if n == 0 { 0.0 } else { mc as f64 / n as f64 },
++        pri_mode_us,
++        pri_fund_us: pri_fund_us(&t, min_gap_us),
++        doa_spread_deg,
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    fn train(pri_us: &[f64], n: usize, doa: impl Fn(usize) -> f64) -> Vec<FlowPulse> {
++        let mut t = 0.0;
++        (0..n)
++            .map(|i| {
++                t += pri_us[i % pri_us.len()];
++                FlowPulse {
++                    input_id: 0,
++                    freq_hz: 3100e6,
++                    power_dbm: -70.0,
++                    bandwidth_hz: 1e6,
++                    duration_ns: 10_000.0,
++                    doa_deg: doa(i),
++                    snr_db: 20.0,
++                    toa_ns: t * 1e3,
++                    modulation: "lfm_up".into(),
++                }
++            })
++            .collect()
++    }
++
++    fn ts(v: &[FlowPulse]) -> Vec<f64> {
++        v.iter().map(|p| p.toa_ns).collect()
++    }
++
++    #[test]
++    fn pri_fundamental_of_fixed_and_staggered_trains() {
++        assert_eq!(pri_fund_us(&ts(&train(&[294.0], 500, |_| 0.0)), 1.0), 294.0);
++        // stagger 300/350/260: the base (shortest) interval, not the 910 us frame
++        assert_eq!(pri_fund_us(&ts(&train(&[300.0, 350.0, 260.0], 600, |_| 0.0)), 1.0), 260.0);
++        assert!(pri_fund_us(&[1.0], 1.0).is_nan());
++    }
++
++    #[test]
++    fn signature_reports_measured_values() {
++        let v = train(&[500.0], 400, |_| 40.0);
++        let s = signature(&v.iter().collect::<Vec<_>>(), 1.0);
++        assert_eq!((s.n, s.fmode, s.pri_fund_us, s.pri_mode_us), (400, "fixed", 500.0, 500.0));
++        assert_eq!(s.modulation, "lfm_up");
++        assert!((s.pw_med_us - 10.0).abs() < 1e-9 && (s.bw_med_mhz - 1.0).abs() < 1e-9);
++        assert!(s.doa_spread_deg < 1.0);
++        // angles around north (350..10 deg): circular spread ~20, not 340
++        let w = train(&[500.0], 105, |i| (350.0 + (i % 21) as f64) % 360.0);
++        let s = signature(&w.iter().collect::<Vec<_>>(), 1.0);
++        assert!(s.doa_spread_deg <= 20.0, "{}", s.doa_spread_deg);
++        assert_eq!(signature(&[], 1.0).n, 0);
++    }
++}

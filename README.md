@@ -38,6 +38,12 @@ Handles every frequency mode on the "Frequency mode" slide:
 Not solvable: two radars of the same type, both agile, no DOA (identical pulses).
 
 ## Use in the office repo
+- **Latest (all fixes, 2026-11-18):** `cd ai_elint && patch -p1 < patches/office_ai_elint_2026-11-18.diff`.
+  Made against the box copy of `ai_elint` (synced 11-17). Covers `classic_v2.rs`, `lib.rs`, new `pri_pattern.rs` + `signature.rs`,
+  `bin/classic_eval.rs`, `pipeline/Cargo.toml` (classic_eval bin) and `config/classic_library.json` (`pri` keys).
+  Checked on a copy: applies clean, release build ok, tests lib 69/69, unit 80/80, parallel_clustering 3/3.
+  On real direction-finder data keep `CLASSIC_V3=0` until the bearing question (Update 5) is answered.
+- Older (v3 only, 11-17):
 - Apply only the classic change: `cd ai_elint && patch -p1 < patches/classic_v2_to_v3.diff` (made against the 11-17 box copy of `classic_v2.rs`).
 - `patches/hdbscan_arm_build_shim.diff` is ONLY for building on Apple Silicon. Do not apply on the box (x86).
 - Library with test agile radars: `tools/library_exp.json` (`CLASSIC_LIBRARY=...`).
