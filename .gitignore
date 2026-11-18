@@ -23,3 +23,9 @@ synth_holdout/
 *.csv
 *.tsv
 *.jsonl
+*.onnx
+*.ort
+*.mxr
+*.whl
+ort.so
+migraphx_cache/
