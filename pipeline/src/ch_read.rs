@@ -24,12 +24,11 @@ pub struct Pulse {
     pub snr_db: f64,
     pub modulation: String,
     pub is_cw: bool,
-    pub receiver_id: u8,
 }
 
 pub const QUERY: &str = "SELECT id, power_dbm, center_frequency_hz, time_of_arrival_ns, \
                      duration_ns, bandwidth_hz, direction_of_arrival_deg, snr_db, \
-                     modulation, is_cw, receiver_id \
+                     modulation, is_cw \
                      FROM signals.pdw WHERE id > {start} ORDER BY id LIMIT {limit}";
 
 pub fn host_port(ch_url: &str) -> (String, u16) {
@@ -147,7 +146,7 @@ pub fn read_pdw_batch(ch_url: &str, start_id: i64, limit: usize) -> Result<Vec<P
             continue;
         }
         let f: Vec<&str> = line.split('\t').collect();
-        if f.len() < 11 {
+        if f.len() < 10 {
             warn!("ch: skipping malformed row ({} cols)", f.len());
             continue;
         }
@@ -162,7 +161,6 @@ pub fn read_pdw_batch(ch_url: &str, start_id: i64, limit: usize) -> Result<Vec<P
             snr_db: f[7].parse().unwrap_or(0.0),
             modulation: f[8].to_string(),
             is_cw: f[9] == "1",
-            receiver_id: f[10].parse().unwrap_or(1),
         });
     }
     Ok(rows)

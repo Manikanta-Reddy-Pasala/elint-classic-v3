@@ -879,7 +879,6 @@ pub async fn run_refresh(
                 snr_db: r.snr_db as f64,
                 modulation: r.modulation.clone(),
                 is_cw: r.is_cw != 0,
-                receiver_id: 1,
             });
         }
         out
