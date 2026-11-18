@@ -1,2 +1,0 @@
-input_csv_file,accuracy,output_csv_file,mismatch_report_file_path,emitter_id
-multiple_emitters_275-285.csv,95,output_multiple_emitters_275-285.csv,mismatch_multiple_emitters_275-285.csv,1104 1105 1106 1107 1108

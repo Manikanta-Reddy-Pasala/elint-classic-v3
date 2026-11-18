@@ -1,5 +1,0 @@
-csv_file_path,emitter_id_1,emitter_id_2,emitter_1_id_csv,emitter_2_id_csv,emitter_1_name,emitter_2_name,no_emitters,std_no_emitters
-data/input_csv_files/pdw_generator/known_emitters/psr1_psr2_best-6_plus5.csv,1104,1105,1,2,PSR1,PSR2,7,1
-data/input_csv_files/pdw_generator/known_emitters/psr1_psr2_best-10_plus5.csv,1104,1105,1,2,PSR1,PSR2,7,1
-data/input_csv_files/pdw_generator/known_emitters/psr1_psr5m1_best-10_plus0.csv,1104,1108,1,2,PSR1,PSR5m1,2,0
-data/input_csv_files/pdw_generator/known_emitters/psr2_psr5m1_best-6_plus0.csv,1105,1108,1,2,PSR2,PSR5m1,2,0

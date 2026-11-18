@@ -20,3 +20,6 @@ primix/
 primix_holdout/
 synth/
 synth_holdout/
+*.csv
+*.tsv
+*.jsonl

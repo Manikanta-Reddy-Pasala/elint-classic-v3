@@ -1,8 +1,0 @@
-input_csv_file,accuracy,output_csv_file,mismatch_report_file_path,emitter_id
-psr4_40dBDR_NoE_maxp_1_PDWTable.csv, 95, output_psr4_40dBDR_NoE_maxp_1_PDWTable.csv, mismatch_psr4_40dBDR_NoE_maxp_1_PDWTable.csv,1107
-psr4_40dBDR_WhE_maxp_1_PDWTable.csv, 95, output_psr4_40dBDR_WhE_maxp_1_PDWTable.csv, mismatch_psr4_40dBDR_WhE_maxp_1_PDWTable.csv,1107
-psr4_40dBDR_WhE_maxp-30_5_PDWTable.csv, 95, output_psr4_40dBDR_WhE_maxp-30_5_PDWTable.csv, mismatch_psr4_40dBDR_WhE_maxp-30_5_PDWTable.csv,1107
-psr4_FDR_WhE_maxp_5_PDWTable.csv, 95, output_psr4_FDR_WhE_maxp_5_PDWTable.csv, mismatch_psr4_FDR_WhE_maxp_5_PDWTable.csv,1107
-psr4_FDR_WhE_maxp_4_PDWTable.csv, 95, output_psr4_FDR_WhE_maxp_4_PDWTable.csv, mismatch_psr4_FDR_WhE_maxp_4_PDWTable.csv,1107
-psr4_40dBDR_WhE_maxp-18_5_PDWTable.csv, 95, output_psr4_40dBDR_WhE_maxp-18_5_PDWTable.csv, mismatch_psr4_40dBDR_WhE_maxp-18_5_PDWTable.csv,1107
-psr4_40dBDR_WhE_maxp-24_2_PDWTable.csv, 95, output_psr4_40dBDR_WhE_maxp-24_2_PDWTable.csv, mismatch_psr4_40dBDR_WhE_maxp-24_2_PDWTable.csv,1107

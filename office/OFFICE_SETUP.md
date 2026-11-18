@@ -25,7 +25,12 @@ Vidya's Python master. Weights are not in git: copy from the box
 | `elint_improvements/` | change notes (CHANGES.md) |
 | `start_demo.sh` | restart DBs + services, print URL |
 
-Data needed (not in git): `ai_elint/data/pdw_generator/{known,unknown}_emitters/*.csv` (608 files)
+Merge into the office `ai_elint` repo: `office/ai_elint` = the box copy (v2 version) plus only these changes:
+`pipeline/src/classic_v2.rs`, `pipeline/src/lib.rs`, new `pipeline/src/pri_pattern.rs` + `pipeline/src/signature.rs`,
+new `pipeline/src/bin/classic_eval.rs`, `pipeline/Cargo.toml` (classic_eval bin), `config/classic_library.json`.
+Every other file is byte-identical to the box. Same change as one patch: `../patches/office_ai_elint_2026-11-18.diff`.
+
+Data needed (not in git, no CSV files in this repo): the judge's `ai_elint_tests/tests/test_data/*.csv` (expected results) and `ai_elint/data/pdw_generator/{known,unknown}_emitters/*.csv` (608 files)
 and the real captures, from the box.
 
 Credentials: none in git. Test-repo VM scripts read `VM_PASS` from the environment;

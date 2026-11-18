@@ -1,2 +1,0 @@
-input_csv_file,accuracy,output_csv_file,mismatch_report_file_path,emitter_id
-PSR2_PSR4_best_case.csv,95,output_PSR2_PSR4_best_case.csv,mismatch_PSR2_PSR4_best_case.csv,1105 1107

@@ -1,4 +1,0 @@
-input_csv_file,accuracy,output_csv_file,mismatch_report_file_path,emitter_id
-gof_sband_cta_1_PDWTable.csv,95,output_gof_sband_cta_1_PDWTable.csv,mismatch_gof_sband_cta_1_PDWTable.csv,948 948
-gof_sband_cta_plus5_1_PDWTable.csv,95,output_gof_sband_cta_plus5_1_PDWTable.csv,mismatch_gof_sband_cta_plus5_1_PDWTable.csv,948 948
-gof_sband_cta_plus10_1_PDWTable.csv,95,output_gof_sband_cta_plus10_1_PDWTable.csv,mismatch_gof_sband_cta_plus10_1_PDWTable.csv,948 948

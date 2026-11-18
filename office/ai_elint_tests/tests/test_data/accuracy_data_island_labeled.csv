@@ -1,2 +1,0 @@
-input_csv_file,accuracy,output_csv_file,mismatch_report_file_path,emitter_id,labeled_column_name
-PSR2_labeled_data_v1.0.csv,70,output_PSR2_labeled_data_v1.0.csv.csv,mismatch_PSR2_labeled_data_v1.0.csv.csv,1105,identifications

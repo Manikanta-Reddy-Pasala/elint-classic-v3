@@ -1,6 +1,0 @@
-h5_file,accuracy,json_file,num_emitters,
-c_band_1_emitter_random.h5,70,c_band_1_emitter_random.json,1
-c_band_3_emitter_random.h5,70,c_band_3_emitter_random.json,3
-c_band_7_emitter_random.h5,70,c_band_7_emitter_random.json,7
-c_band_30_emitter_random.h5,70,c_band_30_emitter_random.json,30
-c_band_52_emitter_random.h5,70,c_band_52_emitter_random.json,52

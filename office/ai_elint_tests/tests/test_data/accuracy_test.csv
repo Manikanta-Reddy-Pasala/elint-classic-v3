@@ -1,7 +1,0 @@
-h5_file,accuracy,json_file,num_emitters,
-1_emitter_664.h5,70,1_emitter_664.json,1
-1_emitter_749.h5,70,1_emitter_749.json,1
-1_emitter_673.h5,70,1_emitter_673.json,1
-1_emitter_679.h5,70,1_emitter_679.json,1
-4_emitters_673_679_664_749.h5,70,4_emitters_673_679_664_749.json,4
-PSR1_PSR2_PSR3_PSR4_PSR5_synthetic_data.h5,70,PSR1_PSR2_PSR3_PSR4_PSR5_synthetic_data.json,5
