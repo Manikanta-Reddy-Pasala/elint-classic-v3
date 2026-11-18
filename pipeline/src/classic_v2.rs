@@ -68,6 +68,11 @@ pub struct ClassicCfg {
     pub reg_fit: f64,
     /// v3: share of a group's pulses inside a rule's carrier window to name it.
     pub name_share: f64,
+    /// v3: a library rule with a `pri` (us) names a group only when the
+    /// group's measured PRI fundamental is within this relative distance
+    /// of it (a look-alike on the same carrier with another pulse train is
+    /// a different radar -> unknown). 0 = check off.
+    pub name_pri_tol: f64,
     /// v3: a rescued sparse group must spread at least this wide (MHz);
     /// narrower leftovers are stray pulses of fixed radars.
     pub rescue_span_mhz: f64,
@@ -153,6 +158,7 @@ impl ClassicCfg {
             reg_min: env_or("CLASSIC_REG_MIN", 0.25),
             reg_fit: env_or("CLASSIC_REG_FIT", 0.5),
             name_share: env_or("CLASSIC_NAME_SHARE", 0.8),
+            name_pri_tol: env_or("CLASSIC_NAME_PRI_TOL", 0.03),
             rescue_span_mhz: env_or("CLASSIC_RESCUE_SPAN_MHZ", 20.0),
             coll_rel: env_or("CLASSIC_COLL_REL", 0.4),
             coll_max: env_or("CLASSIC_COLL_MAX", 0.02),
@@ -298,6 +304,9 @@ struct LibRule {
     pw_max_ge: Option<f64>,
     lfm_ge: Option<f64>,
     pri_lt: Option<f64>,
+    /// v3: PRI fundamental (us) measured on this radar; see `name_pri_tol`.
+    #[serde(default)]
+    pri: Option<f64>,
     /// "mode" (default): carrier mode inside `f`. "span": share of the
     /// group's pulses inside `f` >= name_share (frequency-agile radars).
     #[serde(default)]
@@ -351,6 +360,7 @@ fn library_id(ps: &[&FlowPulse], toas_sorted: &[f64], cfg: &ClassicCfg) -> Optio
     let mut pw_max: Option<f64> = None;
     let mut lfm: Option<f64> = None;
     let mut pri: Option<f64> = None;
+    let mut fund: Option<f64> = None;
     let share_in = |r: &LibRule| {
         ps.iter().filter(|p| (r.f[0]..=r.f[1]).contains(&(p.freq_hz / 1e6))).count() as f64 / ps.len() as f64
     };
@@ -407,6 +417,12 @@ fn library_id(ps: &[&FlowPulse], toas_sorted: &[f64], cfg: &ClassicCfg) -> Optio
                     / ps.len() as f64
             });
             if x < v {
+                continue;
+            }
+        }
+        if let (true, Some(want)) = (cfg.v3 && cfg.name_pri_tol > 0.0, r.pri) {
+            let x = *fund.get_or_insert_with(|| crate::signature::pri_fund_us(toas_sorted, cfg.pri_min_gap_us));
+            if !(x.is_finite() && (x - want).abs() <= cfg.name_pri_tol * want) {
                 continue;
             }
         }
@@ -1685,6 +1701,27 @@ mod tests {
         // spinning DF: never split (side lobes)
         let spin = DoaCtx { fixed: false, ..fixed };
         assert_eq!(doa_track_split(&ps, g, &spin, &cfg).len(), 1);
+    }
+
+    #[test]
+    fn library_name_needs_the_radars_pri() {
+        // built-in MF03 rule: carrier 2898-2905 MHz, PRI 294 us
+        let name = |pri: f64, cfg: &ClassicCfg| {
+            let v: Vec<FlowPulse> = (1..=500).map(|i| fp(i as f64 * pri, 2900.0, 0.0)).collect();
+            let ps: Vec<&FlowPulse> = v.iter().collect();
+            let ts: Vec<f64> = v.iter().map(|p| p.toa_ns).collect();
+            library_id(&ps, &ts, cfg)
+        };
+        let v3 = v3cfg();
+        assert_eq!(name(294.0, &v3), Some(1113));
+        assert_eq!(name(300.0, &v3), Some(1113)); // 2 %: same radar
+        assert_eq!(name(350.0, &v3), None); // look-alike on MF03's carrier: unknown
+        let mut off = v3cfg();
+        off.name_pri_tol = 0.0;
+        assert_eq!(name(350.0, &off), Some(1113)); // check switched off
+        let mut v2 = v3cfg();
+        v2.v3 = false;
+        assert_eq!(name(350.0, &v2), Some(1113)); // v2 naming unchanged
     }
 
     #[test]

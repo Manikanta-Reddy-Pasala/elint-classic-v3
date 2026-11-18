@@ -235,3 +235,56 @@ Limits:
 - Sliding range above ~1.75x looks like missing pulses at the top of the ramp; not tested.
 - Staggers longer than 16 pulses are not looked for.
 - Labels are synthetic; no real capture with known PRI types yet.
+
+## Update 7: unseen radars (fix 2)
+Goal: a radar type that is not in the naming library comes out as ONE clean `unknown_ai` group, is never given a library name, and is described by what was measured.
+
+**Problem found.** Naming looked mainly at the carrier. A new radar sitting on a library radar's carrier (other pulse width, modulation or PRI) got that radar's name, and because the engine keeps one emitter per library id, its pulses were then merged into the real radar's group. On the new test set below, 27 of 50 new radars got a false name and 5 were merged into a library radar.
+
+**Change (v3 only, `CLASSIC_V3=0` = exact v2):**
+- Library rules can carry `"pri"` = the radar's PRI fundamental in us, measured on the corpus. Each of the 8 corpus radars has one stable fundamental in every corpus file (MF03 294, PSR3 75, PSR4 1065, PSR1 1105, PSR5m2 130, MF04 307, PSR2 116, PSR5m1 147). A group is named only when its own PRI fundamental is within `CLASSIC_NAME_PRI_TOL` (default 0.03 = 3 %) of it. `CLASSIC_NAME_PRI_TOL=0` switches the check off. Rules without `pri` (for example the synthetic agile radars in `tools/library_exp.json`) are not checked.
+- PRI fundamental = the shortest pulse gap whose +-1 us neighbourhood holds >= 25 % of the busiest gap, gaps < 1 us skipped (same pulse seen twice). A staggered train gives its base interval, not a harmonic.
+- New `pipeline/src/signature.rs`: per-group `signature` in `classic_eval` JSON: `n`, `fmode`, `f_q5_mhz`/`f_q95_mhz`, `pw_med_us`, `bw_med_mhz`, `modulation` + `mod_share`, `pri_mode_us`, `pri_fund_us`, `doa_spread_deg` (narrowest arc holding 80 % of the angles). This is report output only. The grouping steps are unchanged.
+
+**Test set** `tools/gen_unseen.py`: real corpus files (2 library radars each) plus 1-2 new radars (`emitter_id` 101/102, never read by the engine). Duty cycle is capped at 10 %. Classes:
+- `far`: carrier away from every library band, any frequency mode.
+- `carrier`: fixed carrier inside a library radar's band, with other PW, BW, modulation and PRI (15-45 % away).
+- `pri`: same band, modulation and BW as a library radar; only the PRI differs (15-45 %).
+- `two`: one far and one carrier radar in the same file.
+
+Tune on `SEED=7`; check on `SEED=99`, which was never tuned on. Scored by `tools/score_unseen.py`:
+- **rec**: one group holds >= 80 % of the new radar and is >= 80 % that radar.
+- **named**: a group that is mostly the new radar got a library name.
+- **split**: more than one group is mostly the new radar.
+- **known_ok**: each library radar in the base file keeps the same name it gets on the base file alone.
+
+```
+SEED=7  tools/gen_unseen.py <corpus known_emitters dir> unseen
+SEED=99 tools/gen_unseen.py <corpus known_emitters dir> unseen_holdout
+tools/score_unseen.py results.jsonl unseen/manifest.json ref.jsonl   # ref = classic_eval on the base files
+```
+
+| set (40 files, 50 new radars) | files ok | new radars recovered | false library names | split | library radars ok |
+|---|---|---|---|---|---|
+| tune seed 7, before | 12 | 45 | 27 | 1 | 177/177 |
+| tune seed 7, after | 38 | 50 | 1 | 1 | 177/177 |
+| holdout seed 99, before | 11 | 47 | 29 | 0 | 198/198 |
+| holdout seed 99, after | 39 | 50 | 1 | 0 | 198/198 |
+
+Gate (all unchanged):
+
+| set | before | after |
+|---|---|---|
+| corpus 608 | 608/608 | 608/608 |
+| holdout 40 mixed files | 40/40 | 40/40 |
+| synthetic freq-mode seed 7 (with `library_exp.json`) | 76/86 | 76/86 |
+| synthetic holdout seed 99 | 75/86 | 75/86 |
+| 9 files from other sources (names per group) | - | identical |
+| `CLASSIC_V3=0` on corpus, synth, synth holdout, unseen | - | byte-identical to v2 |
+| unit tests: lib / unit.rs / parallel_clustering | 56 / 80 / 3 | 59 / 80 / 3 |
+
+Still open:
+- Jittered look-alike: 5 % jitter around 157 us on PSR5m1's band (147 us). The jitter's short gaps pull the measured fundamental to about 145 us, inside 3 %, so it is still named PSR5m1 (1 of 50, tune).
+- A look-alike whose PRI is within 1 % of the library radar (146 vs 147 us, PSR5m1 band) is named. PRI cannot tell them apart; it would need PW or modulation envelopes in the library, which the corpus radars vary too much to set safely (1 of 50, holdout).
+- One sliding new radar (3679-3740 MHz, jittered PRI) comes out as 3 groups (tune `far_07`). This is a grouping issue, not naming, and it was the same before the change.
+- The `pri` values describe the generator corpus radars. For real radars, take them from the radar's spec sheet or a clean recording.

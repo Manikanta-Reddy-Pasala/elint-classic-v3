@@ -4,6 +4,7 @@
 //!
 //! usage: classic_eval <file.csv>...
 use ai_processor::classic_v2::{detect, freq_mode, ClassicCfg};
+use ai_processor::signature::signature;
 use ai_processor::onnx_flow::FlowPulse;
 use ai_processor::pri_pattern;
 use std::collections::BTreeMap;
@@ -121,7 +122,8 @@ fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
                 }
             };
             out.push(serde_json::json!({"lib": lib, "n": idx.len(), "truth": t, "fmode": freq_mode(&ps),
-                "doa_q10_50_90": [q(0.1), q(0.5), q(0.9)], "doa_arc80": arc80, "f_q5_95": [fq(0.05), fq(0.95)], "pri_pattern": pri}));
+                "doa_q10_50_90": [q(0.1), q(0.5), q(0.9)], "doa_arc80": arc80, "f_q5_95": [fq(0.05), fq(0.95)], "pri_pattern": pri,
+                "signature": signature(&ps, cfg.pri_min_gap_us)}));
         }
         let mut tt: BTreeMap<i64, usize> = BTreeMap::new();
         for &e in &truth {

@@ -1,14 +1,14 @@
 {
-  "_comment": "Rust classic naming rules. Checked top to bottom; the first rule that matches gives the library id. No match = unknown_ai. Units: MHz, us. Override the file with CLASSIC_LIBRARY=/path/to/file.json. Keys: f = [min, max] carrier (mode, 0.1 MHz bins); pw_max_ge = 99th-percentile pulse width >= value; lfm_ge = share of lfm_up pulses >= value; pri_lt = PRI (mode of gaps) < value.",
+  "_comment": "Rust classic naming rules. Checked top to bottom; the first rule that matches gives the library id. No match = unknown_ai. Units: MHz, us. Override the file with CLASSIC_LIBRARY=/path/to/file.json. Keys: f = [min, max] carrier (mode, 0.1 MHz bins); pw_max_ge = 99th-percentile pulse width >= value; lfm_ge = share of lfm_up pulses >= value; pri_lt = PRI (mode of gaps) < value; pri = PRI fundamental (us) measured on this radar: v3 names a group only when its PRI fundamental is within CLASSIC_NAME_PRI_TOL (3 %) of it, so a look-alike on the same carrier with another pulse train stays unknown.",
   "max_bw_mhz": 6.0,
   "rules": [
-    {"id": 1113, "name": "MF03",   "f": [2898.0, 2905.0]},
-    {"id": 1106, "name": "PSR3",   "f": [2848.0, 2852.0]},
-    {"id": 1107, "name": "PSR4",   "f": [2748.0, 2752.0], "pw_max_ge": 86.0},
-    {"id": 1104, "name": "PSR1",   "f": [2748.0, 2752.0]},
-    {"id": 1116, "name": "PSR5m2", "f": [2798.0, 2822.0]},
-    {"id": 1109, "name": "MF04",   "f": [2858.0, 2892.0], "lfm_ge": 0.8},
-    {"id": 1105, "name": "PSR2",   "f": [2874.0, 2876.5], "pri_lt": 140.0},
-    {"id": 1108, "name": "PSR5m1", "f": [2858.0, 2892.0]}
+    {"id": 1113, "name": "MF03",   "f": [2898.0, 2905.0], "pri": 294},
+    {"id": 1106, "name": "PSR3",   "f": [2848.0, 2852.0], "pri": 75},
+    {"id": 1107, "name": "PSR4",   "f": [2748.0, 2752.0], "pw_max_ge": 86.0, "pri": 1065},
+    {"id": 1104, "name": "PSR1",   "f": [2748.0, 2752.0], "pri": 1105},
+    {"id": 1116, "name": "PSR5m2", "f": [2798.0, 2822.0], "pri": 130},
+    {"id": 1109, "name": "MF04",   "f": [2858.0, 2892.0], "lfm_ge": 0.8, "pri": 307},
+    {"id": 1105, "name": "PSR2",   "f": [2874.0, 2876.5], "pri_lt": 140.0, "pri": 116},
+    {"id": 1108, "name": "PSR5m1", "f": [2858.0, 2892.0], "pri": 147}
   ]
 }

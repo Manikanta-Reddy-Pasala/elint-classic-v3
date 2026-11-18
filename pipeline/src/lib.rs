@@ -33,6 +33,7 @@ pub mod onnx_predict;
 pub mod onnx_flow;
 pub mod classic_v2;
 pub mod pri_pattern;
+pub mod signature;
 pub mod layer_timing;
 pub mod refresh_api_core;
 
