@@ -22,7 +22,6 @@ Vidya's Python master. Weights are not in git: copy from the box
 | `ai_elint_tests/` | pytest judge (608 files) with the harness fixes |
 | `elint_reports/` | run tooling, per-file reports, engine compare, timing |
 | `elint_ui/` | web UI (:8800): Python / ONNX / Classic runs, compare demo |
-| `elint_improvements/` | change notes (CHANGES.md) |
 | `start_demo.sh` | restart DBs + services, print URL |
 
 Merge into the office `ai_elint` repo: `the repo root` = the box copy (v2 version) plus only these changes:

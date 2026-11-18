@@ -11,7 +11,7 @@ ENVS=("$@")
 run corpus $D/pdw_generator/*/*.csv
 run synth synth/*.csv
 run synth_holdout synth_holdout/*.csv
-run holdout40 $R/elint_improvements/holdout/*.csv
+run holdout40 ${HOLDOUT:-$R/elint_improvements/holdout}/*.csv
 run ext $D/2_unk_emitters_PDWTable.csv $D/2unk_freq-agile-only_plus10_PDWTable.csv $D/2unk_freq-agile-only_plus5_PDWTable.csv $D/PSR-1vsPSR-2_PDWTable.csv $D/anurag_PDWTable.csv $D/anurag_agility_PDWTable.csv $D/anurag_agility_plus10emitters_PDWTable.csv
 run real $D/mf6_08_09_4_15_pm.csv $D/pdw.csv
 for s in $EXTRA_SYNTH; do run $s $s/*.csv; done
