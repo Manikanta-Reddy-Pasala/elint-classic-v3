@@ -161,3 +161,77 @@ Still open:
 - Fixed DF: 4/12 DFMIX files still have extra small groups (all radars recovered).
 - The DB path (`ai_processor`) has no `source` column in `FlowPulse`: omni rows from the
   DB still carry their DOA. Only `classic_eval` blanks them.
+
+## Update 6: PRI pattern (fix 3, report only)
+New module `pipeline/src/pri_pattern.rs`: for every group, the PRI type is worked out from TOA only.
+`classic_eval` adds `"pri_pattern"` to each group. Grouping is not changed.
+
+How it works:
+1. Sort TOAs. Drop duplicate pulses (< 1 us after the previous one = same pulse seen by two receivers).
+2. Gaps between pulses are split into levels (sorted gaps, cut where neighbours differ by > 0.3 %; wider for short trains). Levels with < 1 % of gaps are ignored.
+3. From the smallest level up: a level is a **harmonic** (missing pulse) when it is a sum of 2-4 main levels, rarely follows itself and holds fewer gaps than the main levels. Otherwise it is a **main level**.
+4. Type:
+   - smallest main level wide (spread > 0.5 %): consecutive gaps close to each other = `sliding`, else `jitter` (jitter % = half-width of the spread);
+   - one sharp main level = `constant`;
+   - several sharp levels: a gap usually followed by the same level = `dwell_switch` (dwell PRIs, pulses per dwell, dwell time); else the shortest repeat of the level sequence (2-16) = `stagger` (period + elements in pulse order, starting at the smallest);
+   - many sharp levels in smooth order (a fast ramp whose steps repeat) = `sliding`;
+   - else `complex`; fewer than 16 gaps = `too_few`.
+5. `missing_pct`: gaps outside the main levels counted as whole multiples of the mean PRI.
+
+Output per group: `kind, pri_us, jitter_pct, stagger{period_us, elements_us}, dwell{pris_us, dwell_pulses, dwell_us}, sliding{min_us, max_us, step_us, ramp_pulses}, levels_us, harmonics_us, missing_pct, dup_skipped, n_gaps`.
+
+Test data: `tools/gen_primix.py <dir>` (new; uses gen_freqmodes helpers). Each file = one labelled radar + 1-2 other radars.
+Types: constant, jitter (+-1..20 %), stagger (2-8 elements, some with a repeated element), dwell-and-switch (2-5 PRIs, 16-128 pulses per dwell), sliding (saw or triangle, 50-400 pulse ramp, 1.1-1.6x range).
+Missing pulses 0 / 5 / 10 / 20 %; 30 % of files have duplicate pulses from a second receiver. 12 files per type.
+SEED=7 = tune set (rules fixed on it), SEED=99 = holdout (run once, never tuned). Score: `tools/score_pri.py results.jsonl manifest.json`.
+
+Type found vs true type (labelled radar):
+| set | constant | jitter | stagger | dwell-switch | sliding | total |
+|---|---|---|---|---|---|---|
+| tune (seed 7) | 12/12 | 11/12 (1 = grouping, not PRI) | 12/12 | 12/12 | 12/12 | 59/60 |
+| holdout (seed 99) | 12/12 | 12/12 | 12/12 | 12/12 | 12/12 | 60/60 |
+
+Values (only where the type is right), holdout:
+| check | result |
+|---|---|
+| PRI value, median error | 0.00-0.06 % |
+| missing pulses within 5 points | 60/60 |
+| jitter % within 1.5 points | 12/12 |
+| stagger period within 1 % | 12/12 |
+| stagger elements, same cycle order, each within 1 % | 12/12 |
+| dwell PRIs all within 1 % | 12/12 |
+| pulses per dwell within 10 % | 11/12 |
+| sliding min and max within 3 % | 12/12 |
+
+The other (unlabelled-type) radars in the same files: holdout constant 36/36, stagger 24/24, jitter (gaussian 5 %) 26/26; tune 27/28, 31/33, 35/36 (all misses = grouping, not PRI).
+
+Grouping unchanged (`tools/same_groups.py`, groups compared as a set, PRI key and timing ignored):
+| set | result |
+|---|---|
+| corpus 608 | 608/608 files identical (2,736 groups) |
+| synth seed 7 | 86/86 files identical |
+| synth seed 99 | 86/86 |
+| PRI set seed 7 | 60/60 |
+| PRI set seed 99 | 60/60 |
+Note: unknown groups come out in a run-dependent order (already so before this change), so the check compares groups as a set.
+
+PRI types found on the 608 corpus (sanity check, no PRI-type labels there): `tools/pri_summary.py`.
+| emitter | groups | type found (all groups) | found levels vs generator PRI column (one file) |
+|---|---|---|---|
+| 1104 | 112 | dwell_switch 112 | 1105 / 1165 / 1250 / 1540 = generator's 4 values |
+| 1105 | 112 | dwell_switch 112 | 116 / 122 / 1400 / 1605 = generator |
+| 1106 | 112 | dwell_switch 112 | 75 / 86 / 1200 / 1480 = generator (75 found twice: 74.8 + 75.0) |
+| 1107 | 112 | dwell_switch 112 | 1065 / 1125 / 1200 / 1485 = generator |
+| 1108 | 112 | stagger 112 | generator has 16 values (1321-1331 jitter steps); found 147 / 1127 / 1326 |
+| 1109 | 112 | stagger 112 | 307 / 2894 / 3094 / 3321 / 3564 of generator's 8 |
+| 1113 | 112 | dwell_switch 112 | 294-451 levels = generator values |
+| 1116 | 112 | sliding 112 | 130-158 us ramp + longer gaps |
+| unknown_ai | 1,840 | constant 1,461, dwell_switch 314, stagger 64, complex 1 | - |
+
+Every library emitter gets the same type in all 112 of its groups.
+
+Limits:
+- Jittered stagger / jittered dwell-switch (sharp levels plus large jitter) come out `complex`.
+- Sliding range above ~1.75x looks like missing pulses at the top of the ramp; not tested.
+- Staggers longer than 16 pulses are not looked for.
+- Labels are synthetic; no real capture with known PRI types yet.

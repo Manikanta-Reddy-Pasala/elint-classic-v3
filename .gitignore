@@ -16,3 +16,7 @@ synth*/
 dfmix*/
 
 err.log
+primix/
+primix_holdout/
+synth/
+synth_holdout/

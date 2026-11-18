@@ -5,6 +5,7 @@
 //! usage: classic_eval <file.csv>...
 use ai_processor::classic_v2::{detect, freq_mode, ClassicCfg};
 use ai_processor::onnx_flow::FlowPulse;
+use ai_processor::pri_pattern;
 use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
@@ -99,6 +100,8 @@ fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
             let mut fv: Vec<f64> = ps.iter().map(|p| p.freq_hz / 1e6).collect();
             fv.sort_by(|a, b| a.partial_cmp(b).unwrap());
             let fq = |f: f64| fv[((fv.len() - 1) as f64 * f) as usize];
+            let toas: Vec<f64> = ps.iter().map(|p| p.toa_ns).collect();
+            let pri = pri_pattern::analyze(&toas);
             // smallest DOA arc (deg) holding 80 % of the group's pulses (circular)
             let arc80 = {
                 let mut a: Vec<f64> = dv.iter().map(|x| x.rem_euclid(360.0)).collect();
@@ -118,7 +121,7 @@ fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
                 }
             };
             out.push(serde_json::json!({"lib": lib, "n": idx.len(), "truth": t, "fmode": freq_mode(&ps),
-                "doa_q10_50_90": [q(0.1), q(0.5), q(0.9)], "doa_arc80": arc80, "f_q5_95": [fq(0.05), fq(0.95)]}));
+                "doa_q10_50_90": [q(0.1), q(0.5), q(0.9)], "doa_arc80": arc80, "f_q5_95": [fq(0.05), fq(0.95)], "pri_pattern": pri}));
         }
         let mut tt: BTreeMap<i64, usize> = BTreeMap::new();
         for &e in &truth {
