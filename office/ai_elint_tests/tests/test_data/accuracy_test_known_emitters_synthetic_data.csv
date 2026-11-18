@@ -1,0 +1,13 @@
+h5_file,accuracy,json_file,num_emitters,
+PSR1_PSR2_PSR3_PSR4_PSR5_synthetic_data.h5,70,PSR1_PSR2_PSR3_PSR4_PSR5_synthetic_data.json,5
+known_radars_5.h5,70,known_radars_5.json,10
+known_radars_10.h5,70,known_radars_10.json,15
+known_radars_20.h5,70,known_radars_10.json,25
+known_radars_30.h5,70,known_radars_30.json,35
+known_radars_40.h5,70,known_radars_40.json,45
+known_radars_50.h5,70,known_radars_50.json,55
+mf04_10_emmiters.h5,70,mf04_10_emmiters.json,10
+mf04_20_emmiters.h5,70,mf04_20_emmiters.json,20
+mf04_30_emmiters.h5,70,mf04_30_emmiters.json,30
+mf04_40_emmiters.h5,70,mf04_40_emmiters.json,40
+1109.h5,70,1109.json,1

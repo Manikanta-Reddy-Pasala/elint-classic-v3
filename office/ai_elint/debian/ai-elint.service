@@ -1,0 +1,18 @@
+[Unit]
+Description=$CI_PROJECT_NAME
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/elint/ai-elint.env
+WorkingDirectory=/usr/share/elint/ai/
+ExecStart=/usr/bin/python3 app.py $PROGRAM_OPTIONS
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

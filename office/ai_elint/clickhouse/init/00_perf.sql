@@ -1,0 +1,3 @@
+-- 1M/s tuning for ClickHouse: async inserts, bigger blocks, parallel merges.
+-- Server-level settings are applied via users.d/00_perf.xml (mounted to
+-- /etc/clickhouse-server/config.d) — SET GLOBAL in initdb.d is not allowed.

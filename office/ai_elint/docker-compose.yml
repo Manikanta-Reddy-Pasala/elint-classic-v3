@@ -1,0 +1,49 @@
+version: '3.8'
+
+# Single-repo ELINT pipeline — one Rust binary (`engine`) that reads
+# ClickHouse `signals.pdw` directly, band-splits (S/L/X), runs the full
+# AI stage in-process (features → ONNX → known/unknown → HDBSCAN +
+# merge) and writes results directly to Postgres + ClickHouse.
+# No Kafka/Redpanda, no Go, no cache service.
+#
+# Scale out: `docker compose up -d --scale engine=N` — each replica owns
+# a slice of the id range via CH_CDC_SHARD / CH_CDC_SHARDS.
+
+services:
+  # No databases here — the VM (10.10.120.13) runs its own ClickHouse
+  # and Postgres services. The engine talks to them over the VM's host
+  # network, so only the engine container is composed.
+  engine:
+    build:
+      context: .
+      dockerfile: engine/Dockerfile
+    container_name: elint-engine
+    network_mode: host
+    environment:
+      CLICKHOUSE_URL: "http://127.0.0.1:8123"
+      CLICKHOUSE_DB: signals
+      POSTGRES_URL: "postgres://elint:elint@127.0.0.1:5432/sigint"
+      MODEL_PATH: "/models/transformer_model_known_v16.onnx"
+      ORT_LIB_PATH: "/usr/lib/libonnxruntime.so"
+      # Measured on the 24-core APU (INT8 model, 20k pulses):
+      # 1x1 = 7279 ms, 1x8 = 1825 ms, 8x8 = ~5350 ms — one session with
+      # 8 intra-op threads is fastest (extra sessions oversubscribe the
+      # cores and fight for the same memory bandwidth).
+      ONNX_SESSION_COUNT: "2"
+      ONNX_THREADS: "6"
+      # GLOBAL-MATCH: one HDBSCAN over the whole file at the end (matches
+      # the old Python pipeline; HDBSCAN layer is ~5 ms for 20k pulses
+      # vs ~1.7 s of per-window clustering in Python).
+      E2E_MATCH: "1"
+      # Python processes in 512-pulse windows (PDW_CHUNK_SIZE=512). The
+      # engine splits each read batch into 512-pulse windows and runs
+      # ONNX → known/unknown → cluster per window, matching Python.
+      # Override to disable windowing (process the whole read batch):
+      # set WINDOW_SIZE=10000.
+      WINDOW_SIZE: "512"
+      READ_THREADS: "10"
+      PROCESS_WORKERS: "10"
+      FETCH_LIMIT: "2000"
+      TOKIO_THREADS: "16"
+      RUST_LOG: "info"
+    restart: unless-stopped

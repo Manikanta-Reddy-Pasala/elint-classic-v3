@@ -1,0 +1,2 @@
+csv_file_path,emitter_id_1,emitter_id_2,emitter_1_id_csv,emitter_2_id_csv,emitter_1_name,emitter_2_name
+data/input_csv_files/pdw_generator/multiple_emitter/PSR-4vsPSR-5_PDWTable.csv,1107,1108,1,2,PSR4,PSR5

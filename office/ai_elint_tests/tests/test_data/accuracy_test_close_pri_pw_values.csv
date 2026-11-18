@@ -1,0 +1,9 @@
+h5_file,accuracy,json_file,num_emitters,
+s_band_3_emitter_close_pri.h5,70,s_band_3_emitter_close_pri.json,3
+s_band_3_emitter_close_pw.h5,70,s_band_3_emitter_close_pw.json,3
+s_band_7_emitter_close_pri.h5,70,s_band_7_emitter_close_pri.json,7
+s_band_7_emitter_close_pw.h5,70,s_band_7_emitter_close_pw.json,7
+s_band_30_emitter_close_pri.h5,70,s_band_30_emitter_close_pri.json,30
+s_band_30_emitter_close_pw.h5,70,s_band_30_emitter_close_pw.json,30
+s_band_50_emitter_close_pri.h5,70,s_band_50_emitter_close_pri.json,50
+s_band_50_emitter_close_pw.h5,70,s_band_50_emitter_close_pw.json,50

@@ -1,0 +1,12 @@
+[workspace]
+# cdc-poller/rust is intentionally excluded: it has its own [workspace]
+# so old cargo (1.75) does not inherit the repo's v4 Cargo.lock.
+# Run its tests directly: cd cdc-poller/rust && cargo test
+members = ["engine", "pipeline"]
+resolver = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

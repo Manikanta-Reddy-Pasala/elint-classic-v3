@@ -1,0 +1,10 @@
+---
+tagFormat: ${version}
+
+branches:
+  - master
+
+extends: ['@semantic-release/gitlab-config']
+
+plugins:
+  - '@semantic-release/gitlab'

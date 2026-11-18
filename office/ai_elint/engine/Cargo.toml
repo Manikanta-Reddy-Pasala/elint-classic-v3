@@ -1,0 +1,40 @@
+[package]
+name = "engine"
+version = "0.1.0"
+edition = "2021"
+
+# Engine = the single ELINT pipeline binary. It reads pulses directly
+# from ClickHouse `signals.pdw` (CDC poller in-process), band-splits
+# (S/L/X) and runs the full AI stage in-process via the `ai_processor`
+# crate (features → ONNX → known/unknown match → HDBSCAN + merge),
+# writing results directly to Postgres + ClickHouse. No Kafka/Redpanda,
+# no Go — the whole pipeline is Rust in one process.
+
+[dependencies]
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "signal", "io-util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rayon = "1.10.0"
+ai_processor = { path = "../pipeline" }
+
+[[bin]]
+name = "elint_engine"
+path = "src/main.rs"
+
+[lib]
+doctest = false
+name = "elint_engine"
+path = "src/lib.rs"
+
+[[test]]
+name = "unit"
+path = "tests/unit.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

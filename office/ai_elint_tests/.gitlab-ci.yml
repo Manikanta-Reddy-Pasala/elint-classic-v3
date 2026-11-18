@@ -1,0 +1,269 @@
+---
+stages: [setup_data, tests, report, cleanup]
+
+variables:
+  ALLURE_SERVICE_BASE_URL: 10.10.111.10:5050
+  PROJECT_TEST_ID: ${CI_PROJECT_NAME}
+  ENVIRONMENT_BUILD_VERSION: 3.1.47
+  ENVIRONMENT_BUILD_IMAGE: docker.artifactory.internal/df/other/sw-environment-build:${ENVIRONMENT_BUILD_VERSION}
+  UNKNOWN_TEST_FILES: docker.artifactory.internal/elint/ai_module_test_files/unknown_emitters
+  C2_ARTIFACTORY_USER: ${CONAN_LOGIN_USERNAME}
+  C2_ARTIFACTORY_PASSWORD: ${CONAN_PASSWORD}
+  QA_ENVIRONMENT_IMAGE_VERSION: latest
+  QA_ENVIRONMENT_IMAGE: docker.artifactory.internal/df/other/qa-environment/qa-environment-image:${QA_ENVIRONMENT_IMAGE_VERSION}
+  PRE_COMMIT_SKIP: mypy
+  FF_TIMESTAMPS: true
+  CI_SCRIPT_IMAGE_VERSION: 1.0.14
+  CI_SCRIPT_IMAGE: docker.artifactory.internal/df/other/ci-scripts:${CI_SCRIPT_IMAGE_VERSION}
+
+default:
+  interruptible: true
+
+
+test:
+  image: $QA_ENVIRONMENT_IMAGE
+  stage: tests
+  resource_group: elint_tests
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 24h
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 1h
+  before_script:
+    - uv sync --extra dev || uv sync # Attempt to sync with extras, fallback to standard
+  script:
+    - |
+      if [ -z "$TEST_ARGS" ]; then
+        echo "ERROR: TEST_ARGS must be specified for the nightly_testing job."
+        exit 1
+      fi
+      eval "uv run pytest -s $TEST_ARGS --junitxml=./TEST-df-e2e.xml --alluredir=allure-results"
+  artifacts:
+    when: always
+    paths:
+      - logs
+      - TEST-elint-ai.xml
+      - allure-results
+    reports:
+      junit: ./**/TEST-df-e2e.xml
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: on_success
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+      allow_failure: true
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_MESSAGE =~ /\[New_test\][\S+|\s+].+/
+      when: always
+      allow_failure: true
+
+allure-report:
+  stage: report
+  image: $CI_SCRIPT_IMAGE
+  needs:
+    - optional: true
+      job: test
+  before_script: []
+  script:
+    - |
+      if [[ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ]]; then
+        PROJECT_TEST_ID="${PROJECT_TEST_ID}-${CI_COMMIT_REF_SLUG}"
+      elif [[ "$CI_PIPELINE_SOURCE" == "schedule" ]]; then
+        PROJECT_TEST_ID="${ALLURE_REPORT_PREFIX}"
+      else
+        PROJECT_TEST_ID="${PROJECT_TEST_ID}"
+      fi
+    - |
+      if [ -z "${ALLURE_SERVICE_BASE_URL}" ]; then
+        echo "ALLURE_SERVICE_BASE_URL not set, skipping report generation"
+        exit 0
+      fi
+    - |
+      echo "Testing connection to Allure service..."
+      if ! curl -s --connect-timeout 5 "http://${ALLURE_SERVICE_BASE_URL}" > /dev/null; then
+        echo "Cannot connect to Allure service, skipping report generation"
+        exit 0
+      fi
+    - |
+      curl -s -o /dev/null "http://${ALLURE_SERVICE_BASE_URL}/allure-docker-service/clean-results?project_id=${PROJECT_TEST_ID}" || true
+    - |
+      echo "Sending test results..."
+      [ -d "./allure-results" ] && echo "./allure-results exists" || echo "./allure-results not exists"
+      [ "$(find ./allure-results -type f | wc -l)" -gt 0 ] && echo "./allure-results contains files" || echo "./allure-results is empty"
+      if [ -d "./allure-results" ] && [ "$(find ./allure-results -type f | wc -l)" -gt 0 ]; then
+        mkdir -p ./allure-batches
+        TOTAL_FILES=$(find ./allure-results -type f | wc -l)
+        echo "Found $TOTAL_FILES files to upload"
+        BATCH_SIZE=50
+        BATCH=1
+        COUNT=0
+        mkdir -p ./allure-batches/batch-$BATCH
+        find ./allure-results -type f | while read file; do
+          cp "$file" "./allure-batches/batch-$BATCH/"
+          COUNT=$((COUNT + 1))
+          if [ $((COUNT % BATCH_SIZE)) -eq 0 ]; then
+            BATCH=$((BATCH + 1))
+            mkdir -p "./allure-batches/batch-$BATCH"
+          fi
+        done
+        TOTAL_BATCHES=$(find ./allure-batches -maxdepth 1 -type d -name "batch-*" | wc -l)
+        echo "Uploading $TOTAL_FILES files in $TOTAL_BATCHES batches..."
+        BATCH_NUM=0
+        for batch_dir in ./allure-batches/batch-*; do
+          if [ -d "$batch_dir" ] && [ "$(find "$batch_dir" -type f | wc -l)" -gt 0 ]; then
+            BATCH_NUM=$((BATCH_NUM + 1))
+            BATCH_FILES=$(find "$batch_dir" -type f | wc -l)
+            echo "Uploading batch $BATCH_NUM/$TOTAL_BATCHES ($BATCH_FILES files)..."
+            FILES_ARG=""
+            for file in $(find "$batch_dir" -type f); do
+              FILES_ARG="$FILES_ARG -F \"files[]=@$file\""
+            done
+            RESULT=$(eval "curl -s -X POST \"http://${ALLURE_SERVICE_BASE_URL}/allure-docker-service/send-results?project_id=${PROJECT_TEST_ID}&force_project_creation=true\" \
+              -H \"Content-Type: multipart/form-data\" \
+              $FILES_ARG" > /dev/null 2>&1 && echo "OK" || echo "FAILED")
+            if [ "$RESULT" == "OK" ]; then
+              echo "✓ Batch $BATCH_NUM uploaded successfully"
+            else
+              echo "✗ Batch $BATCH_NUM upload failed"
+            fi
+          fi
+        done
+        rm -rf ./allure-batches
+        echo "All files uploaded successfully."
+        echo "Generating report..."
+        echo "PROJECT_TEST_ID=${PROJECT_TEST_ID}"
+        REPORT_URL=$(curl -s -X GET "http://${ALLURE_SERVICE_BASE_URL}/allure-docker-service/generate-report?project_id=${PROJECT_TEST_ID}" | jq -r '.data.report_url' || echo "Failed to generate report")
+        echo "Report URL: ${REPORT_URL}"
+        echo "PROJECT_TEST_ID=${PROJECT_TEST_ID}"
+      else
+        echo "No files found in allure-results directory"
+      fi
+    - |
+      if [ -n "$CI_COMMIT_TAG" ] && [ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ]; then
+        BRANCH_PROJECT_TEST_ID="${PROJECT_TEST_ID}-${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}"
+        curl -s -X DELETE "http://${ALLURE_SERVICE_BASE_URL}/allure-docker-service/projects/${BRANCH_PROJECT_TEST_ID}" || true
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: on_success
+      needs:
+        - job: test
+          artifacts: true
+    - if: $CI_COMMIT_MESSAGE =~ /\[New_test\][\S+|\s+].+/
+      when: on_success
+cleanup-allure-projects:
+  stage: cleanup
+  image: docker.artifactory.internal/df/other/ci-scripts:1.0.14
+  needs:
+    - optional: true
+      job: allure-report
+  before_script: []
+  script:
+    # Only run on main or master branch when a merge request was completed
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "main" ] || [ "$CI_COMMIT_BRANCH" == "master" ] && [ "$CI_PIPELINE_SOURCE" == "push" ]; then
+        # Get the merge request ID from the commit message
+        MR_ID=$(git log --format=%B -n 1 $CI_COMMIT_SHA | grep -o "See merge request.*!\\([0-9]*\\)" | sed 's/.*!\([0-9]*\).*/\1/')
+        if [ -n "$MR_ID" ]; then
+          echo "Found merge request ID: $MR_ID"
+
+          # Debug the API response
+          echo "Requesting merge request info from GitLab API..."
+          API_RESPONSE=$(curl -k --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${MR_ID}")
+          echo "API Response: $API_RESPONSE"
+
+          # Try to extract source branch from API response
+          SOURCE_BRANCH=$(echo "$API_RESPONSE" | jq -r '.source_branch')
+          echo "Extracted SOURCE_BRANCH: $SOURCE_BRANCH"
+
+          # If API method fails, try alternate method - get it from git history
+          if [ -z "$SOURCE_BRANCH" ] || [ "$SOURCE_BRANCH" == "null" ]; then
+            echo "Trying alternate method to find source branch..."
+
+            # Look at merge commit message which often contains the branch name
+            MERGE_MSG=$(git log --format=%B -n 1 $CI_COMMIT_SHA)
+            echo "Merge commit message: $MERGE_MSG"
+
+            # Try to extract branch name using different patterns
+            SOURCE_BRANCH=$(echo "$MERGE_MSG" | grep -o "from [^/]*/[^ ]*" | sed 's/from [^/]*\///' | tr -d "'" | tr -d '"' | head -1)
+            if [ -z "$SOURCE_BRANCH" ]; then
+              # Alternative pattern matching
+              SOURCE_BRANCH=$(echo "$MERGE_MSG" | grep -o "Merge branch '[^']*'" | sed "s/Merge branch '//g" | sed "s/'//g")
+            fi
+            echo "Alternate method found SOURCE_BRANCH: $SOURCE_BRANCH"
+          fi
+          if [ -n "$SOURCE_BRANCH" ] && [ "$SOURCE_BRANCH" != "null" ]; then
+            # Convert to the same slug format used when creating projects
+            SOURCE_BRANCH_SLUG=$(echo "$SOURCE_BRANCH" | sed -e 's/[^[:alnum:]]/-/g' | tr -s '-' | tr A-Z a-z)
+            BRANCH_PROJECT_TEST_ID="${PROJECT_TEST_ID}-${SOURCE_BRANCH_SLUG}"
+            echo "Deleting Allure project for merged branch: $SOURCE_BRANCH (ID: $BRANCH_PROJECT_TEST_ID)"
+            curl -s -X DELETE "http://${ALLURE_SERVICE_BASE_URL}/allure-docker-service/projects/${BRANCH_PROJECT_TEST_ID}" || true
+          else
+            echo "Could not determine source branch for cleanup using any method"
+          fi
+        else
+          echo "This does not appear to be a merge commit, skipping cleanup"
+        fi
+      else
+        echo "Not running on main/master branch after merge, skipping cleanup"
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+
+
+
+email-allure-report:
+  stage: report
+  image: $QA_ENVIRONMENT_IMAGE
+  needs:
+    - job: allure-report
+      optional: true
+  before_script: []
+  script:
+    - |
+      if [[ "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ]]; then
+        PROJECT_TEST_ID="${PROJECT_TEST_ID}-${CI_COMMIT_REF_SLUG}"
+      elif [[ "$CI_PIPELINE_SOURCE" == "schedule" ]]; then
+        PROJECT_TEST_ID="${ALLURE_REPORT_PREFIX}"
+      fi
+    - |
+      echo "Downloading emailable report for project: ${PROJECT_TEST_ID}"
+      HTTP_CODE=$(curl -s -o allure-emailable-report.html -w "%{http_code}" \
+        "http://${ALLURE_SERVICE_BASE_URL}/allure-docker-service/emailable-report/export?project_id=${PROJECT_TEST_ID}")
+      if [ "$HTTP_CODE" != "200" ]; then
+        echo "Failed to download emailable report (HTTP $HTTP_CODE)"
+        cat allure-emailable-report.html || true
+        export HTTP_CODE
+        export PROJECT_TEST_ID
+        bash scripts/no-report-generated-email.sh || true
+        exit 1
+      fi
+      echo "Report downloaded ($(wc -c < allure-emailable-report.html) bytes)"
+    - |
+      echo "Replacing localhost URLs with actual service URL..."
+      sed -i "s|http://localhost:5050|http://${ALLURE_SERVICE_BASE_URL}|g" allure-emailable-report.html
+      sed -i "s|localhost:5050|${ALLURE_SERVICE_BASE_URL}|g" allure-emailable-report.html
+      echo "URL replacement done"
+    - |
+      REPORT_URL="http://${ALLURE_SERVICE_BASE_URL}/allure-docker-service/projects/${PROJECT_TEST_ID}/reports/latest/index.html"
+      echo "Report URL: ${REPORT_URL}"
+      export REPORT_URL
+      export PROJECT_TEST_ID
+      bash scripts/email-report.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_COMMIT_MESSAGE =~ /\[(Test|Markers)\][\S+|\s+].+/
+      when: on_success
+    - when: never

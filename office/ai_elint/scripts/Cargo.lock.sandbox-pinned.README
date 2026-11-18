@@ -1,0 +1,38 @@
+# Sandbox-pinned root Cargo.lock for cargo 1.75 (rebuild recipe below)
+#
+# WHY THIS FILE EXISTS
+# The sandbox toolchain is cargo 1.75, which cannot parse manifests that use
+# `edition = "2024"` (requires cargo >= 1.85). Two transitive deps of
+# `redis 0.27` (pulled by the engine) hit that wall:
+#   - url -> idna -> idna_adapter 1.2.2  (edition2024)
+#   - tokio-retry 0.3 -> rand 0.10 -> getrandom 0.4 -> chacha20 -> cpufeatures 0.3 (edition2024)
+# `cargo update` alone cannot fix it: every downgrade path is blocked by a
+# semver requirement, and chacha20 >= 0.10 always resolves cpufeatures 0.3.x,
+# which is also edition2024.
+#
+# THIS FILE
+# A hand-pruned copy of the fresh lock: the chacha20, tokio-retry, cpufeatures,
+# rand 0.10.3, rand_core 0.10.1 and getrandom 0.4.3 blocks are removed, the
+# ` "tokio-retry",` line is dropped from redis's dep list, and the following
+# are pinned to their last non-edition2024 versions:
+#   idna_adapter 1.2.2 -> 1.1.0, url 2.5.8 -> 2.5.4, ahash 0.8.12 -> 0.8.11,
+#   zerocopy 0.8.60 -> 0.8.48, tokio 1.53.2 -> 1.47.1
+# With these removed the edition2024 parse errors disappear for `cargo test`.
+#
+# KNOWN CAVEAT
+# `cargo test` in the sandbox compiles the engine against redis 0.27, whose
+# `connection-manager` feature uses tokio-retry at runtime (it is not exercised
+# by any test here — the engine tests do not touch the Redis connection manager).
+# The Docker build uses its own lock + modern toolchain and is unaffected.
+#
+# REBUILD (when engine/Cargo.toml changes):
+#   rm -f Cargo.lock && cargo update
+#   cargo update -p idna_adapter@1.2.2 --precise 1.1.0
+#   cargo update -p url@2.5.8 --precise 2.5.4
+#   cargo update -p ahash@0.8.12 --precise 0.8.11
+#   cargo update -p zerocopy@0.8.60 --precise 0.8.48
+#   cargo update -p tokio@1.53.2 --precise 1.47.1
+#   python3 scripts/prune_lock.py   # removes the edition2024 blocks
+#
+# This file is git-ignored (/Cargo.lock in .gitignore) and is local-only.
+# It is NOT used by the Docker image.

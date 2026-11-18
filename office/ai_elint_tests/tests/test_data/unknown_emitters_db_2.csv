@@ -1,0 +1,5 @@
+csv_file_path,emitter_1_id_csv,emitter_2_id_csv,emitter_1_name,emitter_2_name,number_emitters,std_no_emitters
+data/input_csv_files/pdw_generator/unknown_emitters/cta1_cta2_best-0_plus0.csv,1,2,CTA1,CTA2,2,0
+data/input_csv_files/pdw_generator/unknown_emitters/cta1_cta2_best-0_plus2.csv,1,2,CTA1,CTA2,4,0
+data/input_csv_files/pdw_generator/unknown_emitters/cta1_cta2_best-0_plus3.csv,1,2,CTA1,CTA2,5,1
+data/input_csv_files/pdw_generator/unknown_emitters/cta1_cta2_best-0_plus5.csv,1,2,CTA1,CTA2,7,1

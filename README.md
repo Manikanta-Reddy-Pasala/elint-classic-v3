@@ -2,6 +2,8 @@
 
 Code only. No CSV / PDW data in this repo (see `.gitignore`).
 
+**Full office setup** (engines ONNX + Classic v3, model service, UI, reports, test judge): see `office/OFFICE_SETUP.md`.
+
 ## What it is
 `pipeline/` is the `ai_processor` crate (from `ai_elint`) with classic v3 added to
 `pipeline/src/classic_v2.rs`. **v3 is ON by default** (since update 4). `CLASSIC_V3=0` gives exact v2 behaviour.

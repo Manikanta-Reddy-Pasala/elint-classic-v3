@@ -1,0 +1,13 @@
+**/target
+**/node_modules
+**/venv
+**/__pycache__
+*.pyc
+.git
+.gitignore
+_archive
+*.md
+docker-compose.yml
+!cdc-poller/Dockerfile.go
+!writer/Dockerfile
+!platform/Dockerfile

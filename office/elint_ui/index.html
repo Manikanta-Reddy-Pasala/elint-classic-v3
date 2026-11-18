@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ELINT Runner</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1c2230;--mut:#606a7b;--line:#dfe3ea;--acc:#2457c5;--ok:#1a7f37;--bad:#c62828;--hd:#f0f2f6}
+@media (prefers-color-scheme:dark){:root{--bg:#121419;--card:#1a1d24;--fg:#e5e8ee;--mut:#9aa3b2;--line:#2c313b;--acc:#7aa2ff;--ok:#4ac26b;--bad:#ff6b6b;--hd:#20242c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+.pill{font-size:12px;padding:2px 8px;border-radius:10px;border:1px solid var(--line);color:var(--mut)}
+.pill.ok{color:var(--ok);border-color:var(--ok)} .pill.bad{color:var(--bad);border-color:var(--bad)}
+main{padding:16px;display:grid;gap:16px;max-width:1400px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.card h2{font-size:15px;margin:0 0 10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:6px 0}
+input[type=text],input[type=number]{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0}
+#path{flex:1 1 360px}
+button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:7px 14px;cursor:pointer;font-weight:600}
+button.sec{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+button:disabled{opacity:.5;cursor:default}
+.browse{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:6px;font-size:13px}
+.browse div{padding:2px 4px;cursor:pointer;border-radius:4px} .browse div:hover{background:var(--hd)}
+.mut{color:var(--mut)} .ok{color:var(--ok)} .bad{color:var(--bad)}
+.bar{height:6px;background:var(--hd);border-radius:3px;overflow:hidden} .bar i{display:block;height:100%;background:var(--acc);width:0}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;white-space:nowrap}
+th{background:var(--hd);position:sticky;top:0}
+tr.main{cursor:pointer} tr.main:hover{background:var(--hd)}
+tr.det td{background:var(--hd);white-space:normal}
+.tabs button{background:transparent;color:var(--mut);border:0;border-bottom:2px solid transparent;border-radius:0;padding:6px 10px}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--acc)}
+.hw{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.hw .k{font-size:12px;color:var(--mut)} .hw .v{font-size:22px;font-weight:700} .hw .s{font-size:12px;color:var(--mut)}
+.hw .bar{height:10px;margin:4px 0} .hw .bar.g i{background:var(--ok)} .hw .bar i{transition:width .3s}
+/* plain look */
+:root{--bg:#fff;--card:#fff;--fg:#000;--mut:#555;--line:#bbb;--acc:#1a55c4;--ok:#11801f;--bad:#c00;--hd:#eee}
+body{font:14px Arial,Helvetica,sans-serif;background:#fff}
+header{border-bottom:1px solid #bbb;padding:10px 16px}
+.card{border-radius:0;border:1px solid #bbb;padding:10px}
+.pill{border-radius:0}
+button{background:#eee;color:#000;border:1px solid #888;border-radius:2px;font-weight:normal;padding:5px 12px}
+button.sec{background:#fff;color:#000;border:1px solid #888}
+button.on{background:#1a55c4;color:#fff;border-color:#1a55c4}
+.bar{border-radius:0} .browse{border-radius:0}
+input[type=text],input[type=number]{border-radius:0;background:#fff}
+#cmp canvas{border:1px solid #bbb;width:100%;height:260px;display:block;background:#fff}
+#cmp .cols{display:grid;gap:10px}
+#cmp .col{border:1px solid #bbb;padding:8px}
+#cmp .big{font-size:26px;font-weight:bold}
+#cmp .leg span{display:inline-block;margin:2px 8px 2px 0;font-size:12px}
+#cmp .leg i{display:inline-block;width:10px;height:10px;margin-right:3px;vertical-align:middle}
+#cmp .tbar{height:12px;background:#eee;margin:4px 0} #cmp .tbar i{display:block;height:100%}
+#manual summary{cursor:pointer;padding:2px 0} #manual[open] summary{margin-bottom:8px} #manual>section{margin-top:10px}
+</style>
+</head>
+<body>
+<header><h1>ELINT Runner</h1><span id="svc" class="pill">model service …</span><span id="bin" class="mut" style="font-size:12px"></span></header>
+<main>
+  <section class="card">
+    <h2>Hardware (live)</h2>
+    <div class="hw">
+      <div><div class="k">CPU · <span id="h_cpu"></span></div><div class="v" id="h_cpup">–</div>
+        <div class="bar"><i id="h_cpub"></i></div><div class="s" id="h_thr"></div></div>
+      <div><div class="k">GPU · <span id="h_gpu"></span></div><div class="v" id="h_gpup">–</div>
+        <div class="bar g"><i id="h_gpub"></i></div><div class="s" id="h_vram"></div></div>
+      <div><div class="k">Model service workers (used by Rust ONNX)</div><div class="s" id="h_wk" style="font-size:13px;margin-top:4px"></div></div>
+    </div>
+  </section>
+  <section class="card" id="cmp">
+    <h2>Compare demo</h2>
+    <div class="row" id="d_btns"></div>
+    <div class="mut" id="d_hint" style="margin:6px 0">Click a Compare button to load its file and run the engines.</div>
+    <div id="d_body" style="display:none">
+    <div id="d_story" style="margin:4px 0"></div>
+    <div class="mut" id="d_info" style="font-size:12px"></div>
+    <div class="row">
+      <button id="d_run" class="on">Run compare</button>
+      <label>Y axis <select id="d_y"><option value="3">frequency (MHz)</option><option value="4">pulse width (µs)</option><option value="5">direction (°)</option></select></label>
+      <span id="d_msg" class="mut"></span>
+    </div>
+    <p class="mut" style="margin:4px 0;font-size:12px" id="d_src"><b>CSV reading is never timed, for any engine.</b> Rust ONNX and Rust classic: the CSV is first loaded into the database (ClickHouse signals.pdw, not timed), then the engine reads the pulses from the database (timed). Python reads the CSV itself with pandas (not timed). Each panel shows both numbers.</p>
+    <p style="margin:8px 0 2px"><b>Input pulses</b> <span class="mut">(colour = true radar from the generator; the engines never see this)</span></p>
+    <canvas id="d_in"></canvas>
+    <div class="leg" id="d_inleg"></div>
+    <p style="margin:10px 0 2px"><b>Results</b> <span class="mut">(each dot coloured by the radar the engine put it in; grey = not in any radar)</span></p>
+    <div class="cols" id="d_cols"></div>
+    <p id="d_speed" style="font-size:16px;font-weight:bold;margin:8px 0 0"></p>
+    </div>
+  </section>
+  <details class="card" id="manual"><summary><b>Manual run</b> <span class="mut">(pick any file or folder, any engines, full results table)</span></summary>
+  <section class="card">
+    <h2>1 · Source</h2>
+    <div class="row">
+      <label><input type="radio" name="src" value="path" checked> CSV file or folder</label>
+      <label><input type="radio" name="src" value="db"> Pulses already in the database (signals.pdw)</label>
+    </div>
+    <div id="pathbox">
+      <div class="row"><input id="path" type="text" placeholder="/path/to/file.csv or folder">
+        <label class="mut">max files <input id="limit" type="number" min="1" value="20" style="width:80px"></label></div>
+      <div class="row mut" id="cwd"></div>
+      <div class="browse" id="browse"></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>2 · Engine</h2>
+    <div class="row">
+      <label><input type="checkbox" id="e_python"> Python (reference, ONNX model in-process)</label>
+      <label><input type="checkbox" id="e_classic" checked> Rust classic (rules, no model)</label>
+      <label><input type="checkbox" id="e_onnx"> Rust ONNX (model service, GPU + CPU)</label>
+    </div>
+    <div class="row">
+      <button id="run">Run</button>
+      <button id="load" class="sec" title="Load the CSV(s) into ClickHouse without processing">Load to DB only</button>
+      <span id="msg" class="mut"></span>
+    </div>
+    <div class="bar"><i id="prog"></i></div>
+    <div class="mut" id="cur" style="margin-top:4px;font-size:12px"></div>
+  </section>
+  <section class="card">
+    <div class="tabs row"><button id="t_job" class="on">This run</button><button id="t_hist">History</button></div>
+    <div class="wrap"><table id="res"><thead><tr>
+      <th>file</th><th>engine</th><th>expected</th><th>found emitters</th><th>match</th><th>signals</th><th>clusters</th>
+      <th>pulses in clusters</th><th>pipeline ms</th><th>db read</th><th>detect / model</th><th>db writes</th><th>CPU peak</th><th>GPU peak</th><th>rc</th></tr></thead>
+      <tbody></tbody></table></div>
+    <p class="mut" style="font-size:12px">Python can take ~1 min per file (608-file run: Python ~64 s, Rust ONNX ~6 s, Rust classic ~0.1 s median). pipeline = DB read → engine → result writes (CSV loading is setup and not counted). Click a row for per-emitter details and every layer time.</p>
+  </section>
+  </details>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+let job=null, timer=null, view='job';
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+async function api(p,o){const r=await fetch(p,o);return r.json()}
+async function init(){
+  const c=await api('/api/config');
+  $('#bin').textContent=c.bin;
+  const ok=c.onnx&&c.onnx.status==='ok';
+  $('#svc').textContent=ok?'model service: '+c.onnx.workers.map(w=>w.provider.replace('ExecutionProvider','')).join(' + '):'model service: down';
+  $('#svc').className='pill '+(ok?'ok':'bad');
+  browse(c.data_dir); hw(); demoInit();
+}
+const ENGN={python:'Python',classic:'Rust classic',onnx:'Rust ONNX'};
+const ECOL={python:'#888888',onnx:'#2e8540',classic:'#1a55c4'};
+const PAL=['#1a55c4','#d9480f','#2f9e44','#7048e8','#e8a600','#0c8599','#d6336c','#5c940d','#862e9c','#c92a2a','#1098ad','#f76707','#364fc7','#a61e4d','#087f5b','#e67700','#495057','#74b816','#9c36b5','#0b7285'];
+const LIB={1104:"PSR1",1105:"PSR2",1106:"PSR3",1107:"PSR4",1108:"PSR5m1",1109:"MF04",1113:"MF03",1116:"PSR5m2",1117:"MF06"};
+const KC={1113:"#1a55c4",1105:"#d9480f",1109:"#2f9e44",1104:"#7048e8",1106:"#0c8599",1107:"#862e9c",1108:"#5c940d",1116:"#364fc7",1117:"#a61e4d"};
+const UNKC=["#e8a600","#d6336c","#1098ad","#f76707","#9c36b5","#087f5b","#c92a2a","#74b816","#e67700","#495057","#0b7285","#5f3dc4","#b8860b","#ff6b6b","#20c997","#845ef7","#fab005","#868e96","#3bc9db","#e64980"];
+function legCols(legend){let u=0;return legend.map(l=>KC[l.name]||UNKC[(u++)%UNKC.length])}
+function legName(n){return LIB[n]?n+" "+LIB[n]:n}
+let PRESETS=[], preset=null, sample=null, dRes={}, dJob=null, dTimer=null, dStart={};
+function draw(cv, labels, colOf){
+  const W=cv.clientWidth, H=cv.clientHeight, dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.scale(dpr,dpr); g.clearRect(0,0,W,H);
+  if(!sample)return; const yi=+$('#d_y').value, R=sample.rows;
+  const xs=R.map(r=>r[2]).filter(v=>v!=null), ys=R.map(r=>r[yi]).filter(v=>v!=null&&isFinite(v)).sort((a,b)=>a-b);
+  const x0=Math.min(...xs), x1=Math.max(...xs), y0=ys[Math.floor(ys.length*0.005)], y1=ys[Math.floor(ys.length*0.995)];
+  const L=50,B=20,T=6, px=v=>L+(v-x0)/((x1-x0)||1)*(W-L-6), py=v=>T+(1-(v-y0)/((y1-y0)||1))*(H-B-T);
+  g.fillStyle='#000'; g.font='11px Arial';
+  g.fillText(y1.toFixed(1),2,T+9); g.fillText(y0.toFixed(1),2,H-B); g.fillText('0 s',L,H-5); g.fillText(x1.toFixed(1)+' s',W-50,H-5);
+  g.strokeStyle='#bbb'; g.strokeRect(L,T,W-L-6,H-B-T);
+  R.forEach((r,i)=>{const v=r[yi]; if(v==null||v<y0||v>y1)return; g.fillStyle=colOf(i); g.fillRect(px(r[2])-1,py(v)-1,2.2,2.2)});
+}
+function fmtT(ms){return ms==null?'–':ms<1000?Math.round(ms)+' ms':(ms/1000).toFixed(1)+' s'}
+async function demoInit(){
+  PRESETS=await api('/api/presets');
+  $('#d_btns').innerHTML=''; PRESETS.forEach(p=>{const b=document.createElement('button');b.textContent=p.title;b.id='d_b'+p.id;b.onclick=()=>selectPreset(p,true);$('#d_btns').appendChild(b)});
+  $('#d_run').onclick=()=>runDemo(); $('#d_y').onchange=()=>drawAll();
+  const c=document.createElement('button');c.textContent='Clear';c.className='sec';c.style.marginLeft='20px';c.onclick=clearDemo;$('#d_btns').appendChild(c);
+  window.addEventListener('resize',drawAll);
+}
+function clearDemo(){
+  clearTimeout(dTimer); dJob=null; preset=null; sample=null; dRes={};
+  PRESETS.forEach(q=>$('#d_b'+q.id).className='');
+  $('#d_body').style.display='none'; $('#d_hint').style.display='';
+  $('#d_cols').innerHTML=''; $('#d_speed').textContent=''; $('#d_msg').textContent=''; $('#d_run').disabled=false;
+}
+async function selectPreset(p,run){
+  clearTimeout(dTimer); dJob=null; $('#d_run').disabled=false;
+  $('#d_hint').style.display='none'; $('#d_body').style.display='';
+  preset=p; dRes={}; PRESETS.forEach(q=>$('#d_b'+q.id).className=q.id===p.id?'on':'');
+  $('#d_story').textContent=p.story; $('#d_info').textContent='loading pulses…'; $('#d_speed').textContent='';
+  $('#path').value=p.file;
+  $('#d_cols').style.gridTemplateColumns='repeat('+p.engines.length+',1fr)';
+  $('#d_cols').innerHTML=p.engines.map(e=>`<div class="col" id="dc_${e}"><b style="color:${ECOL[e]}">${ENGN[e]}</b>
+    <div class="big" id="dt_${e}">–</div><div class="tbar"><i id="db_${e}" style="width:0;background:${ECOL[e]}"></i></div>
+    <div id="dr_${e}" class="mut">not run yet</div><canvas id="dv_${e}"></canvas><div class="leg" id="dl_${e}"></div></div>`).join('');
+  sample=await api('/api/sample?path='+encodeURIComponent(p.file));
+  const ex=sample.expected||{};
+  $('#d_info').textContent=`${sample.file} · ${sample.pulses.toLocaleString()} pulses (plot shows every ${sample.step}th) · expected ${ex.emitters??'?'} radars${ex.names?' ('+ex.names.join(', ')+' + unknown)':''}`;
+  // last saved result per engine for this file
+  if(!run){const hist=await api('/api/history');
+  for(const e of p.engines){const r=hist.find(h=>h.path===p.file&&h.engine===e&&h.plot_id); if(r) await showRes(r)}}
+  drawAll();
+  if(run) runDemo();
+}
+async function showRes(r){
+  const e=r.engine; r.plot=r.plot_id?await api('/api/plot/'+r.plot_id):null; dRes[e]=r;
+  const ex=r.expected||{}, n=(r.emitters||[]).length;
+  $('#dt_'+e).textContent=fmtT(r.pipeline_ms);
+  const ok=ex.emitters==null?'':(n===ex.emitters?' <span class="ok">✓ correct</span>':` <span class="bad">✗ expected ${ex.emitters}</span>`);
+  $('#dr_'+e).innerHTML=`found <b>${n}</b> radars${ok} · ${r.clusters} clusters`+csvLine(r)+(r.hw?`<br>CPU peak ${r.hw.cpu_peak}% · GPU peak ${r.hw.gpu_peak}%`:'')+`<br><span style="font-size:11px">run at ${esc(r.finished||'')}</span>`;
+  if(r.plot){r.plot.cols=legCols(r.plot.legend); $('#dl_'+e).innerHTML=r.plot.legend.map((l,i)=>`<span><i style="background:${r.plot.cols[i]}"></i>${esc(legName(l.name))}</span>`).join('');}
+  bars(); drawAll();
+}
+function csvLine(r){const L=r.layers||{}, c=L.load_csv, d=L.db_read;
+  if(c==null)return '';
+  return r.engine==='python'?`<br>CSV read (pandas): ${fmtT(c)} <i>not timed</i>`:`<br>CSV → database: ${fmtT(c)} <i>not timed</i> · read from database: ${fmtT(d)} <i>timed</i>`}
+function bars(){
+  const v=Object.values(dRes).map(r=>r.pipeline_ms||0), mx=Math.max(...v,1);
+  Object.values(dRes).forEach(r=>{$('#db_'+r.engine).style.width=Math.max(0.5,100*(r.pipeline_ms||0)/mx)+'%'});
+  const rs=Object.values(dRes).filter(r=>r.pipeline_ms).sort((a,b)=>a.pipeline_ms-b.pipeline_ms);
+  $('#d_speed').textContent=rs.length>1?rs.slice(1).map(r=>`${ENGN[rs[0].engine]} is ${Math.round(r.pipeline_ms/rs[0].pipeline_ms)}× faster than ${ENGN[r.engine]}`).join(' · '):'';
+}
+function drawAll(){
+  if(!sample)return;
+  const tr={}; sample.rows.forEach(r=>{if(!(r[6] in tr))tr[r[6]]=Object.keys(tr).length});
+  draw($('#d_in'),null,i=>PAL[tr[sample.rows[i][6]]%PAL.length]);
+  $('#d_inleg').innerHTML=Object.keys(tr).map(k=>`<span><i style="background:${PAL[tr[k]%PAL.length]}"></i>radar ${esc(k)}</span>`).join('');
+  (preset?preset.engines:[]).forEach(e=>{const r=dRes[e],cv=$('#dv_'+e); if(!cv)return;
+    draw(cv,null,i=>{if(!r||!r.plot)return '#ddd'; const l=r.plot.labels[i]; return l<0?'#c8c8c8':r.plot.cols[l]})});
+}
+async function runDemo(){
+  if(!preset)return;
+  const order=['classic','onnx','python'].filter(e=>preset.engines.includes(e));
+  order.forEach(e=>{delete dRes[e]; $('#dt_'+e).textContent='waiting'; $('#dr_'+e).textContent='queued'; $('#dl_'+e).innerHTML=''; $('#db_'+e).style.width='0'});
+  $('#d_speed').textContent=''; drawAll();
+  const r=await api('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'run',path:preset.file,engines:order})});
+  if(r.error){$('#d_msg').textContent=r.error;return}
+  dJob=r.job; dStart={}; $('#d_msg').textContent='running…'; $('#d_run').disabled=true; demoPoll();
+}
+async function demoPoll(){
+  clearTimeout(dTimer); if(!dJob)return;
+  const j=await api('/api/jobs/'+dJob);
+  for(const r of j.results){ if(!dRes[r.engine]||dRes[r.engine].finished!==r.finished){ if(r.rc===0) await showRes(r); else $('#dr_'+r.engine).innerHTML='<span class="bad">error rc '+r.rc+'</span>'} }
+  const cur=(j.items[j.done]||{}).engine;
+  if(j.status==='queued'){$('#d_msg').textContent='waiting for the run before to finish…'}
+  if(j.status==='running'&&cur){dStart[cur]=dStart[cur]||Date.now(); $('#dt_'+cur).textContent='running '+((Date.now()-dStart[cur])/1000).toFixed(1)+' s'; $('#dr_'+cur).textContent='running…'}
+  if(j.status==='finished'){$('#d_msg').textContent='done'; $('#d_run').disabled=false; dJob=null; return}
+  dTimer=setTimeout(demoPoll,500);
+}
+async function hw(){
+  try{const h=await api('/api/hw');
+    $('#h_cpu').textContent=h.cpu+' · '+h.threads+' threads'; $('#h_gpu').textContent=h.gpu+(h.kfd?' · ROCm on':' · ROCm OFF');
+    $('#h_cpup').textContent=h.cpu_pct+'%'; $('#h_cpub').style.width=h.cpu_pct+'%';
+    $('#h_thr').textContent=h.busy_threads+' of '+h.threads+' threads busy · RAM '+h.ram_used_gb+' / '+h.ram_total_gb+' GB';
+    $('#h_gpup').textContent=h.gpu_pct==null?'n/a':h.gpu_pct+'%'; $('#h_gpub').style.width=(h.gpu_pct||0)+'%';
+    $('#h_vram').textContent='VRAM '+h.vram_used_gb+' / '+h.vram_total_gb+' GB · shared memory (GTT) '+h.gtt_used_gb+' GB';
+    $('#h_wk').innerHTML=(h.workers||[]).map(w=>`<div><b>${esc(w.name)}</b> ${esc(w.provider.replace('ExecutionProvider',''))} · ${w.windows} windows · busy ${w.busy_s} s</div>`).join('')||'<span class="bad">model service down</span>';
+  }catch(e){}
+  setTimeout(hw,1000);
+}
+async function browse(p){
+  const r=await api('/api/browse?path='+encodeURIComponent(p));
+  if(r.error){$('#cwd').textContent=r.error;return}
+  $('#cwd').textContent=r.path; $('#path').value=r.path;
+  const b=$('#browse'); b.innerHTML='';
+  const add=(txt,fn)=>{const d=document.createElement('div');d.textContent=txt;d.onclick=fn;b.appendChild(d)};
+  add('⬆ ..',()=>browse(r.parent));
+  r.dirs.forEach(d=>add('📁 '+d,()=>browse(r.path+'/'+d)));
+  r.files.forEach(f=>add('📄 '+f.name+'  ('+f.mb+' MB)',()=>{$('#path').value=r.path+'/'+f.name}));
+}
+document.querySelectorAll('input[name=src]').forEach(r=>r.onchange=()=>{$('#pathbox').style.display=r.value==='db'&&r.checked?'none':''});
+async function start(action){
+  const src=document.querySelector('input[name=src]:checked').value;
+  const engines=[...(($('#e_python').checked)?['python']:[]),...(($('#e_classic').checked)?['classic']:[]),...(($('#e_onnx').checked)?['onnx']:[])];
+  const body={action:src==='db'?'db':action,path:$('#path').value,engines,limit:+$('#limit').value};
+  const r=await api('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(r.error){$('#msg').textContent=r.error;return}
+  $('#msg').textContent=`queued ${r.items} run(s)`; job=r.job; view='job'; tab(); poll();
+}
+$('#run').onclick=()=>start('run'); $('#load').onclick=()=>start('load');
+async function poll(){
+  clearTimeout(timer); if(!job)return;
+  const j=await api('/api/jobs/'+job);
+  $('#prog').style.width=(100*j.done/j.items.length)+'%';
+  $('#cur').textContent=j.status==='finished'?`finished ${j.done}/${j.items.length}`:`${j.status} ${j.done}/${j.items.length} ${j.current}`;
+  if(view==='job')render(j.results);
+  if(j.status!=='finished')timer=setTimeout(poll,1000);
+}
+function exp(r){if(!r.expected)return '<span class="mut">–</span>';return esc((r.expected.names||[]).join('/'))+' · '+r.expected.emitters}
+function match(r){if(r.action==='load')return 'loaded';if(r.count_ok===undefined)return '<span class="mut">–</span>';
+  const parts=[];if(r.names_ok!==undefined)parts.push(r.names_ok?'<span class="ok">names ✓</span>':'<span class="bad">names ✗</span>');
+  parts.push(r.count_ok?'<span class="ok">count ✓</span>':'<span class="bad">count ✗</span>');return parts.join(' ')}
+function found(r){if(!r.emitters)return '';const c={};r.emitters.forEach(n=>c[n]=(c[n]||0)+1);
+  return r.emitters.length+' · '+Object.entries(c).map(([n,k])=>k>1?`${n}×${k}`:n).join(', ')}
+function core(r){const L=r.layers||{};return r.engine==='python'?(L['py.model']??''):r.engine==='onnx'?(L['onnx.total_wall']??''):(L['classic.detect_total']??'')}
+const ENG={python:'Python',classic:'Rust classic',onnx:'Rust ONNX'};
+function render(rows){
+  const tb=$('#res tbody'); tb.innerHTML='';
+  rows.forEach(r=>{
+    const L=r.layers||{}, tr=document.createElement('tr'); tr.className='main';
+    tr.innerHTML=`<td>${esc(r.file)}</td><td>${esc(ENG[r.engine]||r.engine)}</td><td>${exp(r)}</td><td>${esc(found(r))}</td><td>${match(r)}</td>
+      <td>${r.signals??''}</td><td>${r.clusters??''}</td><td>${r.pulses_in_clusters??''}</td><td><b>${r.pipeline_ms??''}</b></td>
+      <td>${L.db_read??''}</td><td>${core(r)}</td><td>${L['onnx.db_writes']??L['classic.db_writes']??''}</td><td>${r.hw?r.hw.cpu_peak+'%':''}</td><td>${r.hw?r.hw.gpu_peak+'%':''}</td>
+      <td class="${r.rc===0?'ok':'bad'}">${r.rc}</td>`;
+    const det=document.createElement('tr'); det.className='det'; det.style.display='none';
+    const pe=(r.per_emitter||[]).map(p=>`<tr><td>${p.id}</td><td>${esc(p.name)}</td><td>${p.pulses}</td><td>${p.clusters}</td><td>${p.pri_us??''}</td><td>${p.pw_us??''}</td><td>${p.freq_mhz??''}</td><td>${p.doa_deg??''}</td></tr>`).join('');
+    const lay=Object.entries(L).map(([k,v])=>`<span style="margin-right:14px">${esc(k)} <b>${v}</b></span>`).join('');
+    det.innerHTML=`<td colspan="15"><div class="mut" style="margin-bottom:6px">${esc(r.path||'')} · finished ${esc(r.finished||'')} · wall ${r.wall_s}s${r.hw?` · CPU avg ${r.hw.cpu_avg}% peak ${r.hw.cpu_peak}% (${r.hw.threads_peak} busy threads) · GPU avg ${r.hw.gpu_avg}% peak ${r.hw.gpu_peak}%`:''}</div>
+      ${r.error?`<pre class="bad" style="white-space:pre-wrap">${esc(r.error)}</pre>`:''}
+      ${pe?`<table><tr><th>emitter id</th><th>name</th><th>pulses</th><th>clusters</th><th>PRI µs</th><th>PW µs</th><th>freq MHz</th><th>DOA °</th></tr>${pe}</table>`:''}
+      <div style="margin-top:8px;font-size:12px">${lay}</div></td>`;
+    tr.onclick=()=>det.style.display=det.style.display==='none'?'':'none';
+    tb.appendChild(tr); tb.appendChild(det);
+  });
+}
+function tab(){$('#t_job').className=view==='job'?'on':'';$('#t_hist').className=view==='hist'?'on':''}
+$('#t_job').onclick=()=>{view='job';tab();poll()};
+$('#t_hist').onclick=async()=>{view='hist';tab();render(await api('/api/history'))};
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+---
+include:
+  - project: infrastructure/gitlab-ci-templates
+    ref: 2.3.72
+    file:
+      - misc/workflow-template-ci.yml
+      - docker/build-docker-image-template.yml
+      - debian/prepare-debian.yml
+      - debian/package-debian.yml
+      - debian/publish-debian.yml
+  - project: infrastructure/gitlab-ci-templates-elint
+    file: [deployment-test.yml, deployment-env.yml]
+
+variables:
+  ELINT_ROLE_NAME: pdw_processor_ai
+  # ALL DEB
+  PACKAGE_NAME: ai-elint
+  VERSION: ${CI_COMMIT_TAG}
+  ARTIFACTORY: rnd-apt-dev-local
+  # prepare-debian
+  SECTION: Software
+  ARCHITECTURE: all
+  PRIORITY: standard
+  MAINTAINER: DS/AI Team
+  DESCRIPTION: AI Elint service
+  DEPENDS: python3
+  # publish-debian
+  ARTIFACTORY_BASE_URL: https://artifactory.internal:443/artifactory
+  DEBIAN_COMPONENT: sys
+  DISTROS: '22.04'
+  # image used for publish stage
+  ENVIRONMENT_BUILD_VERSION: 3.3.2
+  ENVIRONMENT_BUILD_IMAGE: docker.artifactory.internal/df/other/sw-environment-build:${ENVIRONMENT_BUILD_VERSION}
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+
+stages:
+  - lint
+#  - test
+  - build
+  - tag
+  - prepare-debian-structure
+  - prepare-debian
+  - package-debian
+  - publish-debian
+  - publish
+  - deployment
+
+default:
+  interruptible: true
+
+commit-lint:
+  stage: lint
+  image: bitnami/git:latest
+  variables:
+    # We need history to diff the range of commits, not just the tip.
+    GIT_DEPTH: 0
+  script:
+    - |
+      hook=".githooks/commit-msg"
+      if [ ! -x "$hook" ]; then
+        chmod +x "$hook"
+      fi
+
+      if [ -n "$CI_MERGE_REQUEST_DIFF_BASE_SHA" ]; then
+        range="${CI_MERGE_REQUEST_DIFF_BASE_SHA}..HEAD"
+      elif [ -n "$CI_COMMIT_BEFORE_SHA" ] && \
+           [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+        range="${CI_COMMIT_BEFORE_SHA}..${CI_COMMIT_SHA}"
+      else
+        range="${CI_COMMIT_SHA}~1..${CI_COMMIT_SHA}"
+      fi
+
+      echo "Validating commit range: $range"
+
+      status=0
+      tmp="$(mktemp)"
+      for sha in $(git rev-list --no-merges "$range"); do
+        git log --format=%B -n 1 "$sha" > "$tmp"
+        echo "→ Checking $sha"
+        if ! "$hook" "$tmp"; then
+          status=1
+        fi
+      done
+      rm -f "$tmp"
+      exit $status
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /\b(master|release)\b/
+
+tag:
+  stage: tag
+  image: docker.artifactory.internal/build-images/semantic-release:master
+  before_script: [git config --local core.hooksPath /dev/null]
+  script: [semantic-release]
+  after_script: [git config --local --unset core.hooksPath]
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /\b(master|release)\b/
+  interruptible: false
+
+
+prepare-debian-structure:
+  stage: prepare-debian-structure
+  image: ${ENVIRONMENT_BUILD_IMAGE}
+  extends: .python_defaults
+  script:
+    # initialize empty environment file
+    - mkdir -p "${CI_PROJECT_DIR}/build/etc/elint" && cp "${CI_PROJECT_DIR}/debian/ai-elint.env" "${CI_PROJECT_DIR}/build/etc/elint/ai-elint.env"
+    # create service file
+    - mkdir -p "${CI_PROJECT_DIR}/build/lib/systemd/system/"
+    - cat "${CI_PROJECT_DIR}/debian/ai-elint.service" | envsubst "\$CI_PROJECT_NAME,\$CI_COMMIT_SHORT_SHA" > "${CI_PROJECT_DIR}/build/lib/systemd/system/ai-elint.service"
+    # copy image file
+    - mkdir -p "${CI_PROJECT_DIR}/build/usr/share/elint/ai/"{model,utils} && mkdir -p "${CI_PROJECT_DIR}/build/usr/share/elint/ai_ext"
+    - cp -R integration/app/* "${CI_PROJECT_DIR}/build/usr/share/elint/ai"
+    - cp -R integration/utils/* "${CI_PROJECT_DIR}/build/usr/share/elint/ai/utils/"
+    - cp -R integration/model/* "${CI_PROJECT_DIR}/build/usr/share/elint/ai/model"
+    - cp -R .env/lib/*/site-packages/* "${CI_PROJECT_DIR}/build/usr/share/elint/ai_ext"
+    - cp -R .env/lib64/*/site-packages/* "${CI_PROJECT_DIR}/build/usr/share/elint/ai_ext"
+  artifacts:
+    paths: ['${CI_PROJECT_DIR}/build']
+    expire_in: 1 hour
+
+.python_defaults:
+  before_script:
+    - python3 -m venv .env
+    - source .env/bin/activate
+    - printf "machine %s\nlogin %s\npassword %s\n" "artifactory.internal" "$ARTIFACTORY_USER" "$ARTIFACTORY_PASSWORD" > ~/.netrc
+      && chmod 600 ~/.netrc
+    - export PIP_INDEX_URL="https://artifactory.internal:443/artifactory/api/pypi/pypi-remote/simple/"
+    - export PIP_TRUSTED_HOST="artifactory.internal"
+    - python3 -m pip install --upgrade pip build
+    - SETUPTOOLS_SCM_PRETEND_VERSION="${CI_COMMIT_TAG:-0.1.0+${CI_COMMIT_SHORT_SHA}}"
+      python3 -m pip install -r integration/app/requirements.txt
+  after_script:
+    - rm ~/.netrc

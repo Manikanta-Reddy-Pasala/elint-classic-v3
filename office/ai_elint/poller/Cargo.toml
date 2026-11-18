@@ -1,0 +1,32 @@
+# NOTE: this crate is standalone (not a member of the root workspace).
+# Root Cargo.toml does not list it as a member, so it keeps its own
+# Cargo.lock and can be built directly: cd cdc-poller/rust && cargo test
+[workspace]
+
+[package]
+name = "cdc_poller"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+log = "0.4"
+env_logger = "0.11"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# rdkafka 0.36.x: rdkafka-sys builds a bundled librdkafka (needs make).
+rdkafka = "=0.36.0"
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "time"] }
+
+[lib]
+doctest = false
+name = "cdc_poller"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cdc_poller"
+path = "src/main.rs"
+
+[[test]]
+name = "unit"
+path = "tests/unit.rs"

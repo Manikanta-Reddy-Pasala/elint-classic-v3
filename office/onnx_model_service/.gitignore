@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.whl
+*.log
+migraphx_cache/
+# model files are large; copy them in (see README)
+model/*.onnx

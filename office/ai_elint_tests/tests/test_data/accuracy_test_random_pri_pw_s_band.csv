@@ -1,0 +1,9 @@
+h5_file,accuracy,json_file,num_emitters,
+s_band_1_emitter_random.h5,70,s_band_1_emitter_random.json,1
+s_band_3_emitter_random.h5,70,s_band_3_emitter_random.json,3
+s_band_7_emitter_random.h5,70,s_band_7_emitter_random.json,7
+s_band_30_emitter_random.h5,70,s_band_30_emitter_random.json,30
+s_band_50_emitter_random.h5,70,s_band_50_emitter_random.json,50
+s_band_70_emitter_random.h5,70,s_band_70_emitter_random.json,70
+s_band_100_emitter_random.h5,70,s_band_100_emitter_random.json,100
+s_band_176_emitter_random.h5,70,s_band_176_emitter_random.json,176
