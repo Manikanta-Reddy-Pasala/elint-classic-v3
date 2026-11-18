@@ -1,11 +1,10 @@
 #!/bin/bash
 # elint.sh — build, start and test the ELINT engines (Classic v3 / Classic v2 / ONNX) from this repo.
 #
-#   ./elint.sh setup                 build Rust + model-service venv + UI venv + test-judge image
+#   ./elint.sh setup                 build Rust + model-service venv + UI venv
 #   ./elint.sh start                 databases + ONNX model service + UI   (prints the UI URL)
 #   ./elint.sh run <file.csv> [classic|v2|onnx]   one file through ai_processor, prints + saves emitters
 #   ./elint.sh selftest [quick]      classic accuracy on the 608 files, no DB / model needed
-#   ./elint.sh judge [classic|v2|onnx] [pytest -k expr]   608-file test judge (ai_elint_tests)
 #   ./elint.sh status | stop [db] | logs [model|ui]
 #   ./elint.sh clean --yes           ONLY way anything is deleted: removes the docker DB containers + their data
 #
@@ -13,20 +12,18 @@
 #   DB_MODE=external PG_HOST=.. PG_PORT=.. PG_USER=.. PG_PASS=.. CH_HOST=.. CH_PORT=.. CH_NPORT=..   use your own DBs
 #   PG_DB=<name>   use another Postgres database (created + schema loaded if missing; default sigint)
 # Note: ai_processor --csv itself replaces the previous run's results in the chosen database
-# (v2 behaviour, the judge relies on it). Use another PG_DB to keep a database untouched;
+# (v2 behaviour). Use another PG_DB to keep a database untouched;
 # every ./elint.sh run also keeps a copy of its emitters in .run/results/.
 set -euo pipefail
 R="$(cd "$(dirname "$0")" && pwd)"
 
 DATA="${DATA:-$R/data}"                                  # folder holding pdw_generator/{known,unknown}_emitters/*.csv
 MODEL_FILE="${MODEL_FILE:-$R/model/transformer_model_known_v16.onnx}"   # FP32 v16 (not int8)
-EXPECTED_DIR="${EXPECTED_DIR:-$R/ai_elint_tests/tests/test_data}"        # judge expected-result CSVs (copy from the box)
 DB_MODE="${DB_MODE:-docker}"                             # docker | external
 PG_HOST="${PG_HOST:-127.0.0.1}"; PG_PORT="${PG_PORT:-15432}"; PG_USER="${PG_USER:-elint}"; PG_PASS="${PG_PASS:-elint}"; PG_DB="${PG_DB:-sigint}"
 CH_HOST="${CH_HOST:-127.0.0.1}"; CH_PORT="${CH_PORT:-18123}"; CH_NPORT="${CH_NPORT:-19000}"; CH_USER="${CH_USER:-elint}"; CH_PASS="${CH_PASS:-elint}"
 PG_NAME="${PG_NAME:-elint_pg}"; CH_NAME="${CH_NAME:-elint_ch}"           # docker container names (DB_MODE=docker)
 MODEL_PORT="${MODEL_PORT:-8000}"; UI_PORT="${UI_PORT:-8800}"
-JUDGE_IMAGE="${JUDGE_IMAGE:-elint-judge:latest}"
 # Model device: ROCm box (/dev/kfd + GPU setup done) -> hybrid (GPU + CPU workers); otherwise cpu.
 if [ -z "${DEVICE:-}" ]; then [ -e /dev/kfd ] && [ -f "$R/onnx_model_service/.gpu" ] && DEVICE=hybrid || DEVICE=cpu; fi
 RUN="$R/.run"; mkdir -p "$RUN/logs" "$RUN/results"
@@ -58,6 +55,7 @@ build() {
 }
 
 setup() {
+  mkdir -p "$(dirname "$MODEL_FILE")" "$DATA/pdw_generator/known_emitters" "$DATA/pdw_generator/unknown_emitters"
   build
   need python3 "python3 + venv"
   say "model service venv"
@@ -73,9 +71,6 @@ setup() {
   say "UI venv"
   [ -x "$R/elint_ui/.venv/bin/python" ] || { python3 -m venv "$R/elint_ui/.venv"; "$R/elint_ui/.venv/bin/pip" install -q psycopg2-binary; }
   echo ok
-  if command -v docker >/dev/null; then
-    say "test-judge image $JUDGE_IMAGE"; docker build -q -t "$JUDGE_IMAGE" "$R/ai_elint_tests/docker" >/dev/null && echo ok
-  fi
   [ -f "$MODEL_FILE" ] || echo "NOTE: copy the model to $MODEL_FILE (or set MODEL_FILE=...) before ./elint.sh start"
   ls "$DATA"/pdw_generator/*/*.csv >/dev/null 2>&1 || echo "NOTE: put the CSVs in $DATA/pdw_generator/{known,unknown}_emitters/ (or set DATA=...)"
 }
@@ -137,7 +132,7 @@ ui() {
   curl -sf "http://127.0.0.1:$UI_PORT/" >/dev/null && die "port $UI_PORT is already in use (stop that process, or set UI_PORT=...)"
   say "UI :$UI_PORT"
   (cd "$R/elint_ui" && export AI_PROCESSOR="$BIN" DATA_DIR="$DATA" UI_PORT=$UI_PORT \
-     EXPECTED_JSON="$EXPECTED_DIR/expected_results.json" && bg ui .venv/bin/python server.py)
+     && bg ui .venv/bin/python server.py)
   for i in $(seq 20); do curl -sf "http://127.0.0.1:$UI_PORT/" >/dev/null && break; sleep 1; done
   local ip; ip=$(hostname -I 2>/dev/null | awk '{print $1}'); echo "Open: http://${ip:-127.0.0.1}:$UI_PORT"
 }
@@ -164,31 +159,6 @@ run_one() {
   echo "saved: $res"
 }
 
-judge() {
-  local e="${1:-classic}"; shift || true; local k="${1:-source_omni or main_lobe}"
-  need docker "the judge runs in a container"
-  [ -x "$BIN" ] || die "run ./elint.sh setup first"
-  ls "$EXPECTED_DIR"/known_emitters_db_emitter_level.csv >/dev/null 2>&1 || \
-    die "expected-result CSVs missing in $EXPECTED_DIR (copy ai_elint_tests/tests/test_data/*.csv from the box, or set EXPECTED_DIR)"
-  [ "$e" = onnx ] && ! curl -sf "$ONNX_URL/health" >/dev/null && die "model service not running (./elint.sh start)"
-  docker image inspect "$JUDGE_IMAGE" >/dev/null 2>&1 || docker build -q -t "$JUDGE_IMAGE" "$R/ai_elint_tests/docker" >/dev/null
-  local out="$RUN/judge_${e}_$(date +%Y%m%d_%H%M%S)"; mkdir -p "$out"
-  say "test judge: $e  (-k \"$k\")  database $PG_DB  -> $out"
-  local v3=1; [ "$e" = v2 ] && v3=0
-  mkdir -p "$R/ai_elint_tests/data/input_csv_files/pdw_generator"   # mount point (CSVs are mounted, not copied)
-  docker run --rm --network host -u "$(id -u):$(id -g)" -e HOME=/tmp \
-    -v "$R":/repo:ro -v "$R/ai_elint_tests":/repo/ai_elint_tests -v "$DATA/pdw_generator":/repo/ai_elint_tests/data/input_csv_files/pdw_generator:ro \
-    -v "$EXPECTED_DIR":/repo/ai_elint_tests/tests/test_data:ro -v "$out":/out \
-    -w /repo/ai_elint_tests \
-    -e AI_ENGINE=rust -e RUST_ENGINE="$([ "$e" = onnx ] && echo onnx || echo classic)" -e CLASSIC_V3=$v3 \
-    -e RUST_AI_PROCESSOR=/repo/target/release/ai_processor -e RUST_AI_TIMEOUT=1800 -e ONNX_URL="$ONNX_URL" \
-    -e PG_URL="$PG_URL" -e CH_URL="$CH_URL" -e CLICKHOUSE_USER="$CH_USER" -e CLICKHOUSE_PASSWORD="$CH_PASS" -e CLICKHOUSE_DB=signals \
-    -e ELINT_LOG_DIR=/tmp/elint_logs -e CH_HOST="$CH_HOST" -e CH_PORT=$CH_NPORT -e CH_USER="$CH_USER" -e CH_PASSWORD="$CH_PASS" -e CH_SECURE=0 \
-    -e PG_HOST="$PG_HOST" -e PG_PORT=$PG_PORT -e PG_USER="$PG_USER" -e PG_PASSWORD="$PG_PASS" -e PG_DATABASE="$PG_DB" -e PG_DB="$PG_DB" \
-    "$JUDGE_IMAGE" python -m pytest tests/test_pdw_generator.py -p no:cacheprovider -q --no-header -rA \
-      -o junit_family=xunit2 --junitxml=/out/pytest.xml -k "$k" > "$out/pytest.log" 2>&1 || true
-  tail -1 "$out/pytest.log"; echo "full log: $out/pytest.log"
-}
 
 status() {
   for s in model ui; do alive $s && echo "$s: running (pid $(cat "$RUN/$s.pid"))" || echo "$s: stopped"; done
@@ -221,7 +191,6 @@ case "${1:-help}" in
   start) db; model; ui ;;
   run) shift; run_one "$@" ;;
   selftest) shift; DATA="$DATA" "$R/tools/classic/selftest.sh" "$@" ;;
-  judge) shift; judge "$@" ;;
   status) status ;;
   stop) shift; stop "$@" ;;
   clean) shift; clean "$@" ;;

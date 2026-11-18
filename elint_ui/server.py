@@ -28,7 +28,7 @@ import psycopg2
 HERE = os.path.dirname(os.path.abspath(__file__))
 BIN = os.environ.get("AI_PROCESSOR", os.path.expanduser("~/coderepo/ai_elint/target/release/ai_processor"))
 DATA_DIR = os.environ.get("DATA_DIR", os.path.expanduser("~/coderepo/ai_elint/data"))
-EXPECTED = os.environ.get("EXPECTED_JSON", os.path.expanduser("~/coderepo/ai_elint_tests/tests/test_data/expected_results.json"))
+EXPECTED = os.environ.get("EXPECTED_JSON", os.path.join(HERE, "expected_results.json"))
 PG_URL = os.environ.get("PG_URL", "postgresql://elint:elint@127.0.0.1:15432/sigint")
 CH_URL = os.environ.get("CH_URL", "http://127.0.0.1:18123")
 ONNX_URL = os.environ.get("ONNX_URL", "http://127.0.0.1:8000")

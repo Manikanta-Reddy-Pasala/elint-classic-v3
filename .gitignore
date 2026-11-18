@@ -72,7 +72,3 @@ unseen*/
 .run/
 onnx_model_service/.gpu
 onnx_model_service/model/
-ai_elint_tests/data/
-ai_elint_tests/*.pdf
-ai_elint_tests/*.png
-ai_elint_tests/allure-results/
