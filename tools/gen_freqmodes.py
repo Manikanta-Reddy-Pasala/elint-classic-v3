@@ -2,6 +2,11 @@
 
 Modes: fixed, agile_discrete, agile_continuous, burst, sliding, n_modal.
 PRI types: fixed, stagger, jitter. DOA: 'omni' (corpus-like, useless) or 'df'.
+DFMIX=1: direction-finder test set instead: 2-4 radars of the SAME type
+(modulation, PW, BW, carrier band) at different bearings, either a fixed
+direction finder ("dfmixstatic", bearing noise 1.5 deg) or a rotating
+antenna that hears a radar only while pointing within +-16 deg of it and
+reports its own pointing angle ("dfmixrot", like real capture mf6).
 Writes <out>/<name>.csv and <out>/manifest.json (truth per file: emitters,
 modes, expected library names). The engine never reads emitter_id.
 """
@@ -60,7 +65,7 @@ def carrier(rng, t, mode, f0, f1):
     raise ValueError(mode)
 
 
-def emitter(rng, eid, mode, doa_kind, spec=None):
+def emitter(rng, eid, mode, doa_kind, spec=None, bearing=None, rot=None):
     if spec is None:
         span = {"fixed": 0, "agile_continuous": rng.uniform(100, 300), "agile_discrete": rng.uniform(100, 250),
                 "n_modal": rng.uniform(10, 60), "burst": rng.uniform(60, 150), "sliding": rng.uniform(40, 100)}[mode]
@@ -73,21 +78,32 @@ def emitter(rng, eid, mode, doa_kind, spec=None):
     t = toas(rng, spec["pri"])
     n = len(t)
     fr = carrier(rng, t, spec["fmode"], *spec["f"]) + rng.normal(0, 0.1, n)
-    doa0 = rng.uniform(0, 360)
-    doa = (doa0 + rng.normal(0, 1.5, n)) % 360 if doa_kind == "df" else rng.uniform(0, 360, n)
+    doa0 = rng.uniform(0, 360) if bearing is None else bearing
+    if rot is not None:  # rotating antenna: (period us, start angle, half beam)
+        per, a0, hb = rot
+        ant = (a0 + 360.0 * t / per) % 360
+        keep = np.abs((ant - doa0 + 180) % 360 - 180) <= hb
+        t, fr, ant = t[keep], fr[keep], ant[keep]
+        n = len(t)
+        doa = (ant + rng.normal(0, 0.05, n)) % 360
+    elif doa_kind == "df":
+        doa = (doa0 + rng.normal(0, 1.5, n)) % 360
+    else:
+        doa = rng.uniform(0, 360, n)
     return dict(t=t, f=fr * 1e6, pw=spec["pw"] * 1e3 * (1 + rng.normal(0, 0.01, n)),
                 bw=np.maximum(spec["bw"] + rng.normal(0, 0.2, n), 0.05) * 1e6, doa=doa,
                 pwr=rng.uniform(-80, -60) + rng.normal(0, 0.4, n), mod=np.full(n, spec["mod"]),
-                pri=np.full(n, spec["pri"][1][0] * 1e3), id=np.full(n, eid), mode=spec["fmode"], spec=spec)
+                pri=np.full(n, spec["pri"][1][0] * 1e3), id=np.full(n, eid), mode=spec["fmode"], spec=spec,
+                src=np.full(n, "df" if doa_kind == "df" else "omni"))
 
 
 def write(path, ems, rng):
-    keys = ["t", "f", "pw", "bw", "doa", "pwr", "mod", "pri", "id"]
+    keys = ["t", "f", "pw", "bw", "doa", "pwr", "mod", "pri", "id", "src"]
     cat = {k: np.concatenate([e[k] for e in ems]) for k in keys}
     m = max(1, int(len(cat["t"]) * 0.03))  # false alarms
     noise = dict(t=rng.uniform(0, DUR_S * 1e6, m), f=rng.uniform(30, 40000, m) * 1e6, pw=rng.uniform(0.1, 50, m) * 1e3,
                  bw=rng.uniform(1, 20, m) * 1e6, doa=rng.uniform(0, 360, m), pwr=rng.uniform(-90, -60, m),
-                 mod=np.full(m, "unknown"), pri=np.zeros(m), id=np.full(m, -1))
+                 mod=np.full(m, "unknown"), pri=np.zeros(m), id=np.full(m, -1), src=np.full(m, ems[0]["src"][0]))
     cat = {k: np.concatenate([cat[k], noise[k]]) for k in keys}
     o = np.argsort(cat["t"], kind="stable")
     cat = {k: v[o] for k, v in cat.items()}
@@ -97,14 +113,64 @@ def write(path, ems, rng):
         fh.write(COLS + "\n")
         for i in range(len(toa_ns)):
             fh.write(f"{toa_ns[i]},{cat['pwr'][i]:.4f},{cat['f'][i]:.1f},{cat['bw'][i]:.1f},{cat['pw'][i]:.2f},"
-                     f"{cat['doa'][i]:.3f},NaN,{cat['mod'][i]},{int(cat['pri'][i])},{int(cat['id'][i])},omni,{dtoa[i]},{i+1},"
+                     f"{cat['doa'][i]:.3f},NaN,{cat['mod'][i]},{int(cat['pri'][i])},{int(cat['id'][i])},{cat['src'][i]},{dtoa[i]},{i+1},"
                      f"{cat['pwr'][i]+100:.3f},4\n")
+
+
+def dfmix(out, rng, n_per=12):
+    """Same-type radars at different bearings (only the bearing tells them apart)."""
+    man = {}
+    modes = ["fixed", "agile_discrete", "agile_continuous", "burst", "sliding", "n_modal"]
+    for kind in ["dfmixstatic", "dfmixrot"]:
+        for k in range(n_per):
+            ns = int(rng.integers(2, 5))
+            # bearings at least 20 deg apart
+            while True:
+                b = np.sort(rng.uniform(0, 360, ns))
+                gaps = np.diff(np.r_[b, b[0] + 360])
+                if gaps.min() >= 20:
+                    break
+            rot = None
+            if kind == "dfmixrot":
+                rot = (rng.uniform(0.8e6, 2.5e6), rng.uniform(0, 360), 16.0)
+            mode = str(rng.choice(modes))
+            base = None
+            ems = []
+            for j in range(ns):
+                if base is None:
+                    e = emitter(rng, j + 1, mode, "df", None, b[j], rot)
+                    base = e["spec"]
+                else:
+                    spec = dict(base)
+                    # same type, own PRI (half of the files: the very same PRI too)
+                    if k % 2 == 0:
+                        kind_p = rng.choice(["fixed", "stagger", "jitter"])
+                        v = rng.uniform(300, 3000)
+                        spec["pri"] = (kind_p, [v] if kind_p != "stagger" else list(v * np.array([1.0, 1.17, 0.86])[: rng.choice([2, 3])]))
+                    else:
+                        spec["pri"] = (base["pri"][0], list(base["pri"][1]))
+                    e = emitter(rng, j + 1, mode, "df", spec, b[j], rot)
+                ems.append(e)
+            # 0-2 other radars of other types at their own bearings
+            for j in range(int(rng.integers(0, 3))):
+                ems.append(emitter(rng, ns + j + 1, str(rng.choice(modes)), "df", None, rng.uniform(0, 360), rot))
+            name = f"{kind}_df_{k}"
+            write(f"{out}/{name}.csv", ems, rng)
+            man[name] = dict(emitters=len(ems), modes=[e["mode"] for e in ems], known={},
+                             pri=[e["spec"]["pri"][0] for e in ems], pulses=[int(len(e["t"])) for e in ems],
+                             bearings=[float(x) for x in b], same_type=ns)
+    return man
 
 
 def main(out, n_per=6, seed=7):
     seed = int(os.environ.get("SEED", seed))
     rng = np.random.default_rng(seed)
     os.makedirs(out, exist_ok=True)
+    if os.environ.get("DFMIX") == "1":
+        man = dfmix(out, rng)
+        json.dump(man, open(f"{out}/manifest.json", "w"), indent=1)
+        print(len(man), "files ->", out)
+        return
     man = {}
     modes = ["fixed", "agile_discrete", "agile_continuous", "burst", "sliding", "n_modal"]
     jobs = []

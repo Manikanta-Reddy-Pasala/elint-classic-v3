@@ -88,6 +88,40 @@ pub struct ClassicCfg {
     /// v3: optional cap on the carrier gap (MHz) between two groups the beat
     /// step may join (widest agile band expected). 0 = off.
     pub coh_max_fgap_mhz: f64,
+    /// v3 DOA gate (direction-finder data only, detected from the data):
+    /// never join pieces whose bearings differ at the same moment. 0 = off.
+    pub doa_gate: bool,
+    /// A receiver is a direction finder when time-adjacent pulses of one
+    /// group differ by at most this (median, deg). Omni / random DOA: ~90.
+    pub df_noise_max: f64,
+    /// Track-following tolerance (deg) = max(doa_track_tol_min, doa_tol_k x noise).
+    pub doa_track_tol_min: f64,
+    pub doa_tol_k: f64,
+    /// Centre tolerance (deg) = max(doa_tol_min, doa_center_k x centre spread).
+    pub doa_tol_min: f64,
+    pub doa_center_k: f64,
+    /// Bearings are usable only if one radar's track centres spread <= this (deg).
+    pub df_center_max: f64,
+    /// Pulses closer than this (ms) count as "at the same moment".
+    pub doa_win_ms: f64,
+    /// A bearing track ends after this silence (ms).
+    pub doa_track_gap_ms: f64,
+    /// A direction split keeps a part only if it holds this share of the group.
+    pub doa_split_share: f64,
+    /// 1 = parts below that size fold into the largest part; 0 = kept apart.
+    pub doa_fold_small: bool,
+    /// DOA noise: closest bearing among this many following pulses.
+    pub doa_next: usize,
+    /// Same-moment comparisons needed before bearings count as evidence.
+    pub doa_min_evidence: usize,
+    /// Bearing drift (deg/s) up to which the receiver counts as a fixed
+    /// direction finder (a spinning antenna sweeps ~100s of deg/s).
+    pub doa_fixed_rate: f64,
+    /// DF: split every group by direction before the v3 join (1) or only the
+    /// rescued groups (0); and split final groups by direction tracks (1) or
+    /// by the v2-era DOA histogram rule (0).
+    pub doa_presplit: bool,
+    pub doa_final_split: bool,
 }
 
 fn env_or<T: std::str::FromStr>(k: &str, d: T) -> T {
@@ -126,6 +160,22 @@ impl ClassicCfg {
             gap_ratio_tol: env_or("CLASSIC_GAP_RATIO_TOL", 0.05),
             coh_max_overlap: env_or("CLASSIC_COH_MAX_OVERLAP", 0.002),
             coh_max_fgap_mhz: env_or("CLASSIC_COH_MAX_FGAP_MHZ", 0.0),
+            doa_gate: env_or("CLASSIC_DOA_GATE", 1) == 1,
+            df_noise_max: env_or("CLASSIC_DF_NOISE_MAX_DEG", 10.0),
+            doa_track_tol_min: env_or("CLASSIC_DOA_TRACK_TOL_MIN_DEG", 5.0),
+            doa_tol_k: env_or("CLASSIC_DOA_TOL_K", 4.0),
+            doa_tol_min: env_or("CLASSIC_DOA_TOL_MIN_DEG", 6.0),
+            doa_center_k: env_or("CLASSIC_DOA_CENTER_K", 3.0),
+            df_center_max: env_or("CLASSIC_DF_CENTER_MAX_DEG", 20.0),
+            doa_win_ms: env_or("CLASSIC_DOA_WIN_MS", 20.0),
+            doa_track_gap_ms: env_or("CLASSIC_DOA_TRACK_GAP_MS", 50.0),
+            doa_split_share: env_or("CLASSIC_DOA_SPLIT_SHARE", 0.1),
+            doa_fold_small: env_or("CLASSIC_DOA_FOLD_SMALL", 0) == 1,
+            doa_next: env_or("CLASSIC_DOA_NEXT", 6),
+            doa_min_evidence: env_or("CLASSIC_DOA_MIN_EVIDENCE", 20),
+            doa_fixed_rate: env_or("CLASSIC_DOA_FIXED_RATE", 15.0),
+            doa_presplit: env_or("CLASSIC_DOA_PRESPLIT", 1) == 1,
+            doa_final_split: env_or("CLASSIC_DOA_FINAL_SPLIT", 1) == 1,
         }
     }
 }
@@ -525,6 +575,11 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
     let mut groups: Vec<Vec<usize>> = comps.into_values().collect();
     emit_dur("classic.components", t.elapsed());
     t = Instant::now();
+    // v3: direction-finder check (from the data) for the DOA gate
+    let dctx = if cfg.v3 && cfg.doa_gate { doa_ctx(pulses, &groups, cfg) } else { DoaCtx::default() };
+    if std::env::var("CLASSIC_DOA_DEBUG").is_ok() {
+        eprintln!("DOA ctx {:?}", dctx);
+    }
 
     // 3. same-emitter split repair (carrier + BW overlap, PW within 2 %)
     let summ = |g: &Vec<usize>| {
@@ -548,6 +603,8 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
         let (c2, n2) = coherence_n(&rtoas[b], &rtoas[a], cfg.coh_top, cfg.coh_samples);
         n1 >= cfg.coh_min_pairs && n2 >= cfg.coh_min_pairs && c1.max(c2) < cfg.coh_min
     };
+    let rtr: Vec<Vec<(f64, f64)>> =
+        if dctx.df { groups.par_iter().map(|g| doa_train(pulses, g)).collect() } else { Vec::new() };
     let mut uf = Uf::new(groups.len());
     for a in 0..groups.len() {
         for b in a + 1..groups.len() {
@@ -559,6 +616,7 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
                 && bb0 - cfg.merge_bw_hz <= ba1
                 && (wa - wb).abs() <= cfg.merge_pw_rel * wa.min(wb)
                 && !different_clock(a, b)
+                && !(dctx.df && doa_conflict(&rtr[a], &rtr[b], &dctx, cfg))
             {
                 uf.union(a, b);
             }
@@ -572,6 +630,8 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
 
     // 4. pulse-train coherence
     let toas: Vec<Vec<f64>> = groups.par_iter().map(|g| sorted_toas(pulses, g)).collect();
+    let ctr: Vec<Vec<(f64, f64)>> =
+        if dctx.df { groups.par_iter().map(|g| doa_train(pulses, g)).collect() } else { Vec::new() };
     let mut uf = Uf::new(groups.len());
     {
         let pairs: Vec<(usize, usize)> =
@@ -588,6 +648,9 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
                 }
                 if cfg.v3 {
                     if pulse_overlap(pulses, &groups[*a], &groups[*b]) > cfg.coh_max_overlap {
+                        return false;
+                    }
+                    if dctx.df && doa_conflict(&ctr[*a], &ctr[*b], &dctx, cfg) {
                         return false;
                     }
                     if cfg.coh_max_fgap_mhz > 0.0 {
@@ -640,8 +703,12 @@ pub fn detect(pulses: &[FlowPulse], cfg: &ClassicCfg) -> Vec<(Option<i64>, Vec<u
     t = Instant::now();
 
     if cfg.v3 {
-        groups = v3_rescue_and_join(pulses, &pulse_mod, groups, sparse, cfg);
-        groups = groups.into_iter().flat_map(|g| doa_split(pulses, g)).collect();
+        groups = v3_rescue_and_join(pulses, &pulse_mod, groups, sparse, cfg, &dctx);
+        groups = if dctx.df && cfg.doa_final_split {
+            groups.into_par_iter().flat_map_iter(|g| doa_track_split(pulses, g, &dctx, cfg)).collect()
+        } else {
+            groups.into_iter().flat_map(|g| doa_split(pulses, g)).collect()
+        };
         groups.retain(|g| g.len() >= cfg.min_group);
         debug!("classic_v3: {} groups after agile join", groups.len());
         emit_dur("classic.v3_join", t.elapsed());
@@ -685,6 +752,7 @@ fn v3_rescue_and_join(
     mut groups: Vec<Vec<usize>>,
     sparse: Vec<usize>,
     cfg: &ClassicCfg,
+    dctx: &DoaCtx,
 ) -> Vec<Vec<usize>> {
     use rayon::prelude::*;
     let lw = (1.0 + cfg.pw_rel).ln();
@@ -713,13 +781,32 @@ fn v3_rescue_and_join(
     for (i, k) in keys.iter().enumerate() {
         comps.entry(uf.find(i)).or_default().extend_from_slice(&cells[k]);
     }
-    groups.extend(comps.into_values().filter(|g| {
-        if g.len() < cfg.rescue_min.max(cfg.min_group) {
-            return false;
+    let rescued: Vec<Vec<usize>> = comps
+        .into_values()
+        .filter(|g| {
+            if g.len() < cfg.rescue_min.max(cfg.min_group) {
+                return false;
+            }
+            let mut f: Vec<f64> = g.iter().map(|&i| pulses[i].freq_hz / 1e6).collect();
+            quantile(&mut f.clone(), 0.95) - quantile(&mut f, 0.05) >= cfg.rescue_span_mhz
+        })
+        .collect();
+    if dctx.df {
+        // pieces must be direction-pure before joining: a piece that still
+        // holds two directions has a meaningless centre. Rescued groups
+        // (carrier ignored) mix directions most; the join rebuilds each radar.
+        if cfg.doa_presplit {
+            groups = groups.into_par_iter().flat_map_iter(|g| doa_track_split(pulses, g, dctx, cfg)).collect();
         }
-        let mut f: Vec<f64> = g.iter().map(|&i| pulses[i].freq_hz / 1e6).collect();
-        quantile(&mut f.clone(), 0.95) - quantile(&mut f, 0.05) >= cfg.rescue_span_mhz
-    }));
+        groups.extend(
+            rescued
+                .into_iter()
+                .flat_map(|g| doa_track_split(pulses, g, dctx, cfg))
+                .filter(|g| g.len() >= cfg.min_group),
+        );
+    } else {
+        groups.extend(rescued);
+    }
 
     // B. candidate sets: same modulation, PW close, BW overlap
     let stat = |g: &Vec<usize>| {
@@ -733,6 +820,9 @@ fn v3_rescue_and_join(
         (m, quantile(&mut w, 0.5), quantile(&mut b, 0.05), quantile(&mut b, 0.95))
     };
     let st: Vec<_> = groups.par_iter().map(stat).collect();
+    let jtr: Vec<Vec<(f64, f64)>> =
+        if dctx.df { groups.par_iter().map(|g| doa_train(pulses, g)).collect() } else { Vec::new() };
+    let conflict = |a: usize, b: usize| dctx.df && doa_conflict(&jtr[a], &jtr[b], dctx, cfg);
     let mut uf = Uf::new(groups.len());
     for a in 0..groups.len() {
         for b in a + 1..groups.len() {
@@ -742,6 +832,7 @@ fn v3_rescue_and_join(
                 && (wa - wb).abs() <= cfg.merge_pw_rel * wa.min(wb)
                 && ba0 - cfg.merge_bw_hz <= bb1
                 && bb0 - cfg.merge_bw_hz <= ba1
+                && !conflict(a, b)
             {
                 uf.union(a, b);
             }
@@ -762,6 +853,20 @@ fn v3_rescue_and_join(
             if cand.len() == 1 {
                 out.push(vec![cand[0]]);
                 continue;
+            }
+            // DF: pieces seen in another direction than the largest piece leave
+            if dctx.df {
+                let big = (0..cand.len()).max_by_key(|k| groups[cand[*k]].len()).unwrap();
+                let gb = cand[big];
+                let off: Vec<usize> = cand.iter().copied().filter(|g| *g != gb && conflict(*g, gb)).collect();
+                if !off.is_empty() {
+                    cand.retain(|g| !off.contains(g));
+                    todo.push(off);
+                    if cand.len() == 1 {
+                        out.push(vec![cand[0]]);
+                        continue;
+                    }
+                }
             }
             // base-gap check against the largest piece
             let base: Vec<Option<Vec<f64>>> = cand.iter().map(|g| own_gap_set(pulses, &groups[*g], cfg)).collect();
@@ -861,6 +966,376 @@ fn v3_rescue_and_join(
     }
     out.retain(|g| !g.is_empty());
     out
+}
+
+/// v3 DOA context, measured from the data: is the receiver a direction
+/// finder and how noisy are its bearings. Not usable -> every DOA rule is off.
+///
+/// Bearings are judged per *track*: pulses of one group walked in time order,
+/// each joining the open track whose last bearings are within `track_tol`
+/// (a track ends after a silence). A rotating antenna that only hears a
+/// radar while pointing near it gives one track per look ("dwell"), with
+/// the bearing sweeping across the beam; its centre (median) is stable from
+/// look to look. A fixed direction finder gives one long track per radar.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct DoaCtx {
+    pub df: bool,
+    /// median |DOA difference| of time-adjacent pulses in one group (deg)
+    pub noise: f64,
+    /// bearings hardly move while a radar is heard (fixed direction finder,
+    /// not a spinning antenna): bearings at different times may be compared
+    pub fixed: bool,
+    /// median bearing drift while one radar is heard (deg/s)
+    pub rate: f64,
+    /// track-following tolerance (deg)
+    pub track_tol: f64,
+    /// two pulse trains whose bearings at the same moment differ by more
+    /// than this (median) are different radars (deg)
+    pub tol: f64,
+    /// the same pulse seen twice (< pri_min_gap apart): median |DOA
+    /// difference| of the two reports and their share of time-adjacent pairs.
+    /// Two receivers that disagree on the same pulse = DOA not usable.
+    pub dup_diff: f64,
+    pub dup_share: f64,
+}
+
+/// Signed circular difference a - b in (-180, 180].
+fn circ_diff(a: f64, b: f64) -> f64 {
+    let d = (a - b).rem_euclid(360.0);
+    if d > 180.0 {
+        d - 360.0
+    } else {
+        d
+    }
+}
+
+/// Weighted circular median of bearings (deg): median of offsets around the
+/// weighted circular mean.
+fn circ_median(v: &[(f64, f64)]) -> f64 {
+    let (mut s, mut c) = (0.0, 0.0);
+    for (x, w) in v {
+        s += w * x.to_radians().sin();
+        c += w * x.to_radians().cos();
+    }
+    let m = s.atan2(c).to_degrees();
+    let off: Vec<(f64, f64)> = v.iter().map(|(x, w)| (circ_diff(*x, m), *w)).collect();
+    (m + weighted_median(off)).rem_euclid(360.0)
+}
+
+fn weighted_median(mut v: Vec<(f64, f64)>) -> f64 {
+    if v.is_empty() {
+        return f64::NAN;
+    }
+    v.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    let half = v.iter().map(|x| x.1).sum::<f64>() / 2.0;
+    let mut acc = 0.0;
+    for (x, w) in &v {
+        acc += w;
+        if acc >= half {
+            return *x;
+        }
+    }
+    v.last().unwrap().0
+}
+
+/// Pulses of a group with a finite DOA, in time order.
+fn doa_order(pulses: &[FlowPulse], g: &[usize]) -> Vec<usize> {
+    let mut o: Vec<usize> = g.iter().copied().filter(|&i| pulses[i].doa_deg.is_finite()).collect();
+    o.sort_unstable_by(|a, b| pulses[*a].toa_ns.partial_cmp(&pulses[*b].toa_ns).unwrap());
+    o
+}
+
+/// Bearing tracks of time-ordered pulses (see `DoaCtx`). A track ends after
+/// a silence of max(doa_track_gap_ms, 10 x the group's median gap), at most 2 s.
+fn doa_tracks(pulses: &[FlowPulse], ord: &[usize], tol: f64, cfg: &ClassicCfg) -> Vec<Vec<usize>> {
+    if ord.is_empty() {
+        return Vec::new();
+    }
+    let mut gaps: Vec<f64> = ord.windows(2).map(|w| pulses[w[1]].toa_ns - pulses[w[0]].toa_ns).collect();
+    let med = if gaps.is_empty() { 0.0 } else { quantile(&mut gaps, 0.5) };
+    let gap = (cfg.doa_track_gap_ms * 1e6).max(10.0 * med).min(2e9);
+    // (last toa, last 3 bearings, members)
+    let mut tracks: Vec<(f64, Vec<f64>, Vec<usize>)> = Vec::new();
+    let mut active: Vec<usize> = Vec::new();
+    for &i in ord {
+        let (t, d) = (pulses[i].toa_ns, pulses[i].doa_deg);
+        active.retain(|k| t - tracks[*k].0 <= gap);
+        let mut best: Option<(usize, f64)> = None;
+        for &k in &active {
+            let rc = &tracks[k].1;
+            let last = *rc.last().unwrap();
+            let mut ds: Vec<f64> = rc.iter().map(|x| circ_diff(*x, last)).collect();
+            let e = circ_diff(d, last + quantile(&mut ds, 0.5)).abs();
+            if best.map_or(true, |b| e < b.1) {
+                best = Some((k, e));
+            }
+        }
+        match best {
+            Some((k, e)) if e <= tol => {
+                let tr = &mut tracks[k];
+                tr.0 = t;
+                tr.1.push(d);
+                if tr.1.len() > 3 {
+                    tr.1.remove(0);
+                }
+                tr.2.push(i);
+            }
+            _ => {
+                tracks.push((t, vec![d], vec![i]));
+                active.push(tracks.len() - 1);
+            }
+        }
+    }
+    tracks.into_iter().map(|t| t.2).collect()
+}
+
+fn doa_ctx(pulses: &[FlowPulse], groups: &[Vec<usize>], cfg: &ClassicCfg) -> DoaCtx {
+    use rayon::prelude::*;
+    let win = cfg.doa_win_ms * 1e6;
+    let dup_ns = cfg.pri_min_gap_us * 1e3;
+    // pass 1: time-adjacent noise + duplicate disagreement
+    let per: Vec<(f64, f64, Vec<f64>, usize, f64)> = groups
+        .par_iter()
+        .filter_map(|g| {
+            let o = doa_order(pulses, g);
+            if o.len() < 50 {
+                return None;
+            }
+            let (mut d1, mut dd) = (Vec::new(), Vec::new());
+            for k in 0..o.len() - 1 {
+                let a = &pulses[o[k]];
+                let b = &pulses[o[k + 1]];
+                if b.toa_ns - a.toa_ns < dup_ns {
+                    dd.push(circ_diff(b.doa_deg, a.doa_deg).abs());
+                    continue;
+                }
+                // closest bearing among the next pulses: a group may still hold
+                // several interleaved radars; one of the next pulses is the same one
+                let best = o[k + 1..o.len().min(k + 1 + cfg.doa_next)]
+                    .iter()
+                    .map(|&j| &pulses[j])
+                    .filter(|q| q.toa_ns - a.toa_ns >= dup_ns && q.toa_ns - a.toa_ns <= win)
+                    .map(|q| circ_diff(q.doa_deg, a.doa_deg).abs())
+                    .fold(f64::INFINITY, f64::min);
+                if best.is_finite() {
+                    d1.push(best);
+                }
+            }
+            if d1.len() < 20 {
+                return None;
+            }
+            let np = d1.len() + dd.len();
+            Some((o.len() as f64, quantile(&mut d1, 0.5), dd, np, 0.0))
+        })
+        .collect();
+    if per.is_empty() {
+        return DoaCtx::default();
+    }
+    let noise = weighted_median(per.iter().map(|x| (x.1, x.0)).collect());
+    let mut dd: Vec<f64> = per.iter().flat_map(|x| x.2.iter().copied()).collect();
+    let pairs: usize = per.iter().map(|x| x.3).sum();
+    let dup_share = dd.len() as f64 / pairs.max(1) as f64;
+    let dup_diff = if dd.is_empty() { 0.0 } else { quantile(&mut dd, 0.5) };
+    let track_tol = cfg.doa_track_tol_min.max(cfg.doa_tol_k * noise);
+    // two reports of the same pulse that disagree: bearings are not usable
+    // (the same pulse at the same instant: must agree within the moment noise)
+    let dup_bad = dup_share >= 0.05 && dup_diff > cfg.doa_tol_min.max(track_tol);
+    let df = noise <= cfg.df_noise_max && !dup_bad;
+    // bearing drift while a radar is heard: least-squares slope of each
+    // bearing track (>= 20 pulses, >= 10 ms); pulse-weighted median
+    let track_tol = cfg.doa_track_tol_min.max(cfg.doa_tol_k * noise);
+    let slopes: Vec<(f64, f64)> = if df {
+        groups
+            .par_iter()
+            .flat_map_iter(|g| {
+                let o = doa_order(pulses, g);
+                doa_tracks(pulses, &o, track_tol, cfg)
+                    .into_iter()
+                    .filter_map(|t| {
+                        let (t0, t1) = (pulses[t[0]].toa_ns, pulses[*t.last().unwrap()].toa_ns);
+                        if t.len() < 20 || t1 - t0 < 1e7 {
+                            return None;
+                        }
+                        let d0 = pulses[t[0]].doa_deg;
+                        let n = t.len() as f64;
+                        let xs: Vec<f64> = t.iter().map(|&i| (pulses[i].toa_ns - t0) / 1e9).collect();
+                        let ys: Vec<f64> = t.iter().map(|&i| circ_diff(pulses[i].doa_deg, d0)).collect();
+                        let (mx, my) = (xs.iter().sum::<f64>() / n, ys.iter().sum::<f64>() / n);
+                        let sxy: f64 = xs.iter().zip(&ys).map(|(x, y)| (x - mx) * (y - my)).sum();
+                        let sxx: f64 = xs.iter().map(|x| (x - mx) * (x - mx)).sum();
+                        if sxx <= 0.0 {
+                            return None;
+                        }
+                        Some(((sxy / sxx).abs(), n))
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    // no long track to measure: unknown drift -> treated as spinning (no splits)
+    let rate = if slopes.iter().map(|x| x.1).sum::<f64>() < 200.0 { f64::INFINITY } else { weighted_median(slopes) };
+    DoaCtx {
+        df,
+        fixed: df && rate <= cfg.doa_fixed_rate,
+        noise,
+        rate,
+        track_tol,
+        tol: cfg.doa_tol_min.max(track_tol),
+        dup_diff,
+        dup_share,
+    }
+}
+
+/// TOA-sorted (toa_ns, doa_deg) of a group's pulses with a bearing.
+fn doa_train(pulses: &[FlowPulse], g: &[usize]) -> Vec<(f64, f64)> {
+    doa_order(pulses, g).into_iter().map(|i| (pulses[i].toa_ns, pulses[i].doa_deg)).collect()
+}
+
+/// Bearings of two trains compared at the same moments only: for sampled
+/// pulses of the smaller train, the other train's bearing at that time
+/// (interpolated between its neighbours, both within `doa_win_ms`).
+/// Some(true) = different directions at the same time = different radars.
+/// None = not on air together often enough (no evidence). Bearings seen at
+/// different times are never compared: a spinning direction finder can hear
+/// one radar from several directions (side lobes) on different looks.
+fn doa_differs(a: &[(f64, f64)], b: &[(f64, f64)], ctx: &DoaCtx, cfg: &ClassicCfg, samples: usize) -> Option<bool> {
+    let (a, b) = if a.len() <= b.len() { (a, b) } else { (b, a) };
+    if a.len() < 20 || b.len() < 20 {
+        return None;
+    }
+    let win = cfg.doa_win_ms * 1e6;
+    let n = samples.min(a.len());
+    let mut r = Vec::with_capacity(n);
+    for k in 0..n {
+        let i = if n == 1 { 0 } else { k * (a.len() - 1) / (n - 1) };
+        let (t, d) = a[i];
+        let j = b.partition_point(|x| x.0 < t);
+        if j == 0 || j >= b.len() {
+            continue;
+        }
+        let (p, q) = (b[j - 1], b[j]);
+        if t - p.0 > win || q.0 - t > win || q.0 <= p.0 {
+            continue;
+        }
+        let est = p.1 + circ_diff(q.1, p.1) * (t - p.0) / (q.0 - p.0);
+        r.push(circ_diff(d, est).abs());
+    }
+    if r.len() >= cfg.doa_min_evidence {
+        return Some(quantile(&mut r, 0.5) > ctx.tol);
+    }
+    if ctx.fixed {
+        // fixed direction finder: a radar keeps its bearing, so the whole
+        // trains can be compared even when they are not on air together
+        let ca = circ_median(&a.iter().map(|x| (x.1, 1.0)).collect::<Vec<_>>());
+        let cb = circ_median(&b.iter().map(|x| (x.1, 1.0)).collect::<Vec<_>>());
+        return Some(circ_diff(ca, cb).abs() > ctx.tol);
+    }
+    None
+}
+
+/// Two trains heard from clearly different directions at the same time.
+fn doa_conflict(a: &[(f64, f64)], b: &[(f64, f64)], ctx: &DoaCtx, cfg: &ClassicCfg) -> bool {
+    ctx.df && doa_differs(a, b, ctx, cfg, 300) == Some(true)
+}
+
+/// v3 step C (direction finder): split a group whose pulses come from more
+/// than one direction AT THE SAME TIME. Pulses are walked in time order into
+/// bearing tracks; tracks go into parts (largest first: a track joins the
+/// part with the most same-direction evidence and no conflict; a track with
+/// no evidence either way joins the largest part without conflict; a track
+/// in conflict with every part starts a new one). Parts below
+/// `doa_split_share` of the group (or `min_group`) are kept apart (the
+/// min_group filter drops them) unless `doa_fold_small`.
+fn doa_track_split(pulses: &[FlowPulse], g: Vec<usize>, ctx: &DoaCtx, cfg: &ClassicCfg) -> Vec<Vec<usize>> {
+    // spinning antenna: one radar can show at two bearings (side lobes,
+    // reflections) -> bearings only veto joins, they never split a group
+    if !ctx.fixed || g.len() < 2 * cfg.min_group {
+        return vec![g];
+    }
+    let o = doa_order(pulses, &g);
+    let mut tr: Vec<Vec<usize>> = doa_tracks(pulses, &o, ctx.track_tol, cfg).into_iter().filter(|t| t.len() >= 20).collect();
+    if tr.len() < 2 {
+        return vec![g];
+    }
+    tr.sort_by_key(|t| std::cmp::Reverse(t.len()));
+    let trains: Vec<Vec<(f64, f64)>> =
+        tr.iter().map(|t| t.iter().map(|&i| (pulses[i].toa_ns, pulses[i].doa_deg)).collect()).collect();
+    let mut cl: Vec<Vec<usize>> = Vec::new();
+    for x in 0..tr.len() {
+        let mut pick: Option<(usize, usize)> = None;
+        let mut free: Option<usize> = None;
+        for (c, members) in cl.iter().enumerate() {
+            let (mut same, mut diff) = (0usize, 0usize);
+            for &y in members {
+                match doa_differs(&trains[x], &trains[y], ctx, cfg, 100) {
+                    Some(true) => diff += 1,
+                    Some(false) => same += 1,
+                    None => {}
+                }
+            }
+            if diff > 0 {
+                continue;
+            }
+            if same > 0 && pick.map_or(true, |p| same > p.1) {
+                pick = Some((c, same));
+            }
+            if free.is_none() {
+                free = Some(c);
+            }
+        }
+        match pick.map(|p| p.0).or(free) {
+            Some(c) => cl[c].push(x),
+            None => cl.push(vec![x]),
+        }
+    }
+    if std::env::var("CLASSIC_DOA_DEBUG").is_ok() {
+        eprintln!("DOA split n={} parts {:?}", g.len(), cl.iter().map(|c| c.iter().map(|x| tr[*x].len()).sum::<usize>()).collect::<Vec<_>>());
+    }
+    if cl.len() < 2 {
+        return vec![g];
+    }
+    let mut parts: Vec<Vec<usize>> = cl.iter().map(|c| c.iter().flat_map(|x| tr[*x].iter().copied()).collect()).collect();
+    parts.sort_by_key(|p| std::cmp::Reverse(p.len()));
+    let min_n = (cfg.doa_split_share * g.len() as f64).max(cfg.min_group as f64) as usize;
+    let mut keep: Vec<Vec<usize>> = Vec::new();
+    let mut small: Vec<Vec<usize>> = Vec::new();
+    for p in parts {
+        if keep.is_empty() || p.len() >= min_n {
+            keep.push(p);
+        } else {
+            small.push(p);
+        }
+    }
+    if keep.len() < 2 && (cfg.doa_fold_small || small.is_empty()) {
+        return vec![g];
+    }
+    let placed: std::collections::HashSet<usize> = keep.iter().chain(small.iter()).flatten().copied().collect();
+    if cfg.doa_fold_small {
+        keep[0].extend(small.into_iter().flatten());
+    } else {
+        keep.extend(small);
+    }
+    // fixed direction finder: pulses of short tracks go to the part with the
+    // nearest bearing; pulses without a bearing go to the largest part
+    let cen: Vec<f64> = keep.iter().map(|p| circ_median(&p.iter().map(|&i| (pulses[i].doa_deg, 1.0)).collect::<Vec<_>>())).collect();
+    for &i in &g {
+        if placed.contains(&i) {
+            continue;
+        }
+        let d = pulses[i].doa_deg;
+        let k = if d.is_finite() {
+            (0..cen.len()).min_by(|a, b| circ_diff(d, cen[*a]).abs().partial_cmp(&circ_diff(d, cen[*b]).abs()).unwrap()).unwrap()
+        } else {
+            0
+        };
+        keep[k].push(i);
+    }
+    for p in keep.iter_mut() {
+        p.sort_unstable();
+    }
+    keep
 }
 
 /// v3 step C: two radars of the same type (same pulses, both agile) are one
@@ -1133,6 +1608,83 @@ mod tests {
         let mut c = ClassicCfg::from_env();
         c.v3 = true;
         c
+    }
+
+    /// small deterministic noise in [-a, a]
+    fn jit(i: usize, a: f64) -> f64 {
+        (((i * 7919 + 13) % 1000) as f64 / 999.0 * 2.0 - 1.0) * a
+    }
+
+    #[test]
+    fn doa_ctx_fixed_df_vs_spinning_vs_omni() {
+        let cfg = v3cfg();
+        // fixed DF: radar at 40 deg, noise +-1 deg, 10 s
+        let fixed: Vec<FlowPulse> = (0..3000).map(|i| fp(i as f64 * 1000.0, 3000.0, 40.0 + jit(i, 1.0))).collect();
+        let g = vec![(0..fixed.len()).collect::<Vec<_>>()];
+        let c = doa_ctx(&fixed, &g, &cfg);
+        assert!(c.df && c.fixed, "{c:?}");
+        // spinning antenna: bearing sweeps 300 deg/s during 60 ms looks once a second
+        let mut spin = Vec::new();
+        for look in 0..10 {
+            for k in 0..300 {
+                let t = look as f64 * 1e6 + k as f64 * 200.0; // us
+                spin.push(fp(t, 3000.0, (100.0 + 300.0 * k as f64 * 200.0 / 1e6 - 9.0) % 360.0));
+            }
+        }
+        let g = vec![(0..spin.len()).collect::<Vec<_>>()];
+        let c = doa_ctx(&spin, &g, &cfg);
+        assert!(c.df && !c.fixed, "{c:?}");
+        // omni: bearing random per pulse
+        let omni: Vec<FlowPulse> = (0..3000).map(|i| fp(i as f64 * 1000.0, 3000.0, (((i * i * 7919 + i * 104729) / 7) % 360) as f64)).collect();
+        let g = vec![(0..omni.len()).collect::<Vec<_>>()];
+        assert!(!doa_ctx(&omni, &g, &cfg).df);
+        // two receivers reporting the same pulse with different bearings
+        let mut dup = Vec::new();
+        for i in 0..3000 {
+            dup.push(fp(i as f64 * 1000.0, 3000.0, 80.0 + jit(i, 1.0)));
+            dup.push(fp(i as f64 * 1000.0 + 0.2, 3000.0, 190.0 + jit(i + 1, 1.0)));
+        }
+        let g = vec![(0..dup.len()).collect::<Vec<_>>()];
+        assert!(!doa_ctx(&dup, &g, &cfg).df);
+    }
+
+    #[test]
+    fn doa_differs_needs_same_moment_unless_fixed() {
+        let cfg = v3cfg();
+        let a: Vec<(f64, f64)> = (0..500).map(|i| (i as f64 * 1e6, 40.0 + jit(i, 1.0))).collect();
+        let b_same: Vec<(f64, f64)> = (0..500).map(|i| (i as f64 * 1e6 + 3e5, 41.0 + jit(i + 3, 1.0))).collect();
+        let b_far: Vec<(f64, f64)> = (0..500).map(|i| (i as f64 * 1e6 + 3e5, 120.0 + jit(i + 3, 1.0))).collect();
+        let late: Vec<(f64, f64)> = (0..500).map(|i| (6e8 + i as f64 * 1e6, 120.0)).collect();
+        let mut ctx = DoaCtx { df: true, fixed: false, tol: 6.0, track_tol: 5.0, ..Default::default() };
+        assert_eq!(doa_differs(&a, &b_same, &ctx, &cfg, 300), Some(false));
+        assert_eq!(doa_differs(&a, &b_far, &ctx, &cfg, 300), Some(true));
+        // spinning: trains never on air together -> no evidence
+        assert_eq!(doa_differs(&a, &late, &ctx, &cfg, 300), None);
+        // fixed DF: whole-train bearings compared
+        ctx.fixed = true;
+        assert_eq!(doa_differs(&a, &late, &ctx, &cfg, 300), Some(true));
+    }
+
+    #[test]
+    fn doa_split_two_same_type_radars_fixed_df_only() {
+        let cfg = v3cfg();
+        // identical radars interleaved, bearings 40 and 200
+        let mut ps = Vec::new();
+        for i in 0..2000 {
+            ps.push(fp(i as f64 * 1000.0, 3000.0, 40.0 + jit(i, 1.0)));
+            ps.push(fp(i as f64 * 1000.0 + 377.0, 3000.0, 200.0 + jit(i + 5, 1.0)));
+        }
+        let g: Vec<usize> = (0..ps.len()).collect();
+        let fixed = DoaCtx { df: true, fixed: true, tol: 6.0, track_tol: 5.0, ..Default::default() };
+        let parts = doa_track_split(&ps, g.clone(), &fixed, &cfg);
+        assert_eq!(parts.len(), 2);
+        for p in &parts {
+            let b0 = ps[p[0]].doa_deg;
+            assert!(p.iter().all(|&i| circ_diff(ps[i].doa_deg, b0).abs() < 10.0));
+        }
+        // spinning DF: never split (side lobes)
+        let spin = DoaCtx { fixed: false, ..fixed };
+        assert_eq!(doa_track_split(&ps, g, &spin, &cfg).len(), 1);
     }
 
     #[test]

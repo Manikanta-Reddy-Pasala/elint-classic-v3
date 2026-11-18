@@ -9,3 +9,10 @@ results/
 synth*/
 .venv/
 __pycache__/
+.cargo-cache/
+classic_eval_base
+results/
+synth*/
+dfmix*/
+
+err.log

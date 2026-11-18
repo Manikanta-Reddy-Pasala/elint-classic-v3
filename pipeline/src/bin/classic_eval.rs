@@ -46,6 +46,8 @@ fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
             ix("snr_db"),
             ix("emitter_id"),
         );
+        // an omni receiver measures no direction: its DOA column is not a bearing
+        let isrc = ix("source");
         let num = |s: &str| s.parse::<f64>().unwrap_or(f64::NAN);
         let toa = |s: &str| s.parse::<f64>().unwrap_or_else(|_| parse_ts_ns(s));
         let mut pulses = Vec::new();
@@ -63,7 +65,11 @@ fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
                 power_dbm: num(v[ip]),
                 bandwidth_hz: num(v[ib]),
                 duration_ns: num(v[id]),
-                doa_deg: num(v[ido]),
+                doa_deg: if isrc.map_or(false, |i| v[i].trim().eq_ignore_ascii_case("omni")) {
+                    f64::NAN
+                } else {
+                    num(v[ido])
+                },
                 snr_db: isn.map(|i| num(v[i])).unwrap_or(0.0),
                 toa_ns: toa(v[it]),
                 modulation: v[ity].to_ascii_lowercase(),
@@ -93,8 +99,26 @@ fn run_file(path: &str, cfg: &ClassicCfg) -> anyhow::Result<String> {
             let mut fv: Vec<f64> = ps.iter().map(|p| p.freq_hz / 1e6).collect();
             fv.sort_by(|a, b| a.partial_cmp(b).unwrap());
             let fq = |f: f64| fv[((fv.len() - 1) as f64 * f) as usize];
+            // smallest DOA arc (deg) holding 80 % of the group's pulses (circular)
+            let arc80 = {
+                let mut a: Vec<f64> = dv.iter().map(|x| x.rem_euclid(360.0)).collect();
+                a.sort_by(|x, y| x.partial_cmp(y).unwrap());
+                let n = a.len();
+                if n < 5 {
+                    f64::NAN
+                } else {
+                    let k = ((0.8 * n as f64).ceil() as usize).max(1);
+                    (0..n)
+                        .map(|i| {
+                            let j = i + k - 1;
+                            let hi = if j < n { a[j] } else { a[j - n] + 360.0 };
+                            hi - a[i]
+                        })
+                        .fold(f64::INFINITY, f64::min)
+                }
+            };
             out.push(serde_json::json!({"lib": lib, "n": idx.len(), "truth": t, "fmode": freq_mode(&ps),
-                "doa_q10_50_90": [q(0.1), q(0.5), q(0.9)], "f_q5_95": [fq(0.05), fq(0.95)]}));
+                "doa_q10_50_90": [q(0.1), q(0.5), q(0.9)], "doa_arc80": arc80, "f_q5_95": [fq(0.05), fq(0.95)]}));
         }
         let mut tt: BTreeMap<i64, usize> = BTreeMap::new();
         for &e in &truth {

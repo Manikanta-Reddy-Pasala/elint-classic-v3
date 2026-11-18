@@ -4,7 +4,7 @@ res = [json.loads(l) for l in open(sys.argv[1]) if l.startswith("{")]
 man = json.load(open(sys.argv[2])) if len(sys.argv) > 2 and sys.argv[2].endswith(".json") else {}
 detail = "--detail" in sys.argv
 exp = {}
-EXP_DIR = os.environ.get("EXP", "../ai_elint_tests")
+EXP_DIR = os.environ.get("EXP", "/mnt/t9/elint_box_coderepo/ai_elint_tests" if os.path.isdir("/mnt/t9/elint_box_coderepo/ai_elint_tests") else "../ai_elint_tests")
 for p in [f"{EXP_DIR}/tests/test_data/known_emitters_db_emitter_level.csv", f"{EXP_DIR}/tests/test_data/unknown_emitters_db.csv"]:
     for r in csv.DictReader(open(p)):
         exp[os.path.basename(r["csv_file_path"])] = r

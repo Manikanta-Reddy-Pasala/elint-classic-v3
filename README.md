@@ -43,6 +43,7 @@ Not solvable: two radars of the same type, both agile, no DOA (identical pulses)
 - Library with test agile radars: `tools/library_exp.json` (`CLASSIC_LIBRARY=...`).
 
 ## Tools
+- `tools/gate.sh <tag> [ENV=..]` = every test set + mf6 DOA report; `EXTRA_SYNTH="dfmix dfmix_holdout"` adds the DF sets. `tools/tune.sh` = tune sets only. `tools/build.sh` = cargo in docker.
 - `pipeline/src/bin/classic_eval.rs` — CSV -> classic detect -> one JSON line per file (no DB).
 - `tools/gen_freqmodes.py <outdir>` (`SEED=99` for holdout) — synthetic PDW CSVs, same columns as the corpus.
 - `tools/score.py`, `tools/run_eval.sh <tag> [CLASSIC_V3=1 ...]` — env `DATA`, `SYNTH`, `EXP` (ai_elint_tests dir), `PY`.
@@ -89,3 +90,74 @@ Most of one-at-a-time wall time is CSV reading in the runner. Largest classic st
 - Tests, original box code vs this code (Apple Silicon, ARM shim on both): lib 53/53 -> 56/56 (+3 v3 tests), tests/unit.rs (ONNX, inference, global match, hdbscan, db helpers) 80/80 = 80/80, parallel_clustering 3/3 = 3/3.
 - 608 files: default (v3) 608/608, CLASSIC_V3=0 608/608.
 - Reminder: on the real DF capture (mf6) v3 mixed directions in some groups (see update 2). If real DF data looks wrong, set CLASSIC_V3=0.
+
+## Update 5: DOA gate for direction-finder data (fix 1)
+Goal: v3 must not put pulses from different directions into one radar, while
+omni / unusable bearings change nothing. Everything is measured from the data;
+`CLASSIC_DOA_GATE=0` turns it off, `CLASSIC_V3=0` is still exact v2.
+
+What the data showed first:
+- **Corpus (608) and the other-generator files** are a *spinning* direction finder
+  plus an omni receiver. The omni rows carry no bearing (now read as "no DOA" when
+  `source=omni`). The spinning DF reports its own pointing angle and hears one radar
+  on several bearings (side lobes): a radar's looks land at many angles.
+- **mf6** is the same kind of receiver: inside one look the bearing sweeps ~270 deg/s.
+- So **only bearings measured at the same moment prove two radars**. Bearings from
+  different looks are evidence only for a *fixed* direction finder (bearing steady).
+
+Rules (`classic_v2.rs`, v3 only):
+1. `doa_ctx` per file: bearing noise (closest bearing among the next 6 pulses of a
+   group), "same pulse twice" check (two reports of one pulse that disagree = bearings
+   unusable), drift = least-squares slope of each bearing track. DF if noise <= 10 deg
+   and duplicates agree; **fixed DF** if drift <= 15 deg/s, else spinning.
+2. `doa_differs`: compare two trains at the same moments (other train's bearing
+   interpolated between neighbours <= 20 ms away); median difference > 6 deg = different.
+   Fixed DF only: if never on air together, compare whole-train bearings.
+3. Veto (DF): split repair, beat/coherence join, v3 candidate sets and v3 join never
+   join two pieces that differ.
+4. Split (fixed DF only): bearing tracks -> parts by same-moment / whole-train
+   evidence; done on every group before the v3 join (pieces must be direction-pure)
+   and on the final groups (replaces the v2-era histogram rule there). Leftover pulses
+   go to the part with the nearest bearing. A spinning DF never splits (side lobes).
+5. Generator: `DFMIX=1 tools/gen_freqmodes.py <dir>` = 2-4 radars of the SAME type at
+   bearings >= 20 deg apart, `dfmixstatic` (fixed DF, 1.5 deg noise) and `dfmixrot`
+   (antenna spinning 0.8-2.5 s, hears +-16 deg, reports its pointing angle like mf6).
+   Rows now carry `source` = df / omni. Tune = seed 7, holdout = seed 99 (never tuned).
+
+Results (`tools/gate.sh`, library `tools/library_exp.json`):
+| set | v2 | v3 before | v3 + DOA gate |
+|---|---|---|---|
+| corpus 608 | 608 | 608 | 608 |
+| holdout 40 mixed | 38 | 40 | 40 |
+| other-generator labeled (7 files here) | 2 | 4 | 4 |
+| synth seed 7 (tune) | 0 | 76 | 80 |
+| synth seed 99 (holdout) | 1 | 75 | 79 |
+| DFMIX seed 7 (tune), fixed DF / spinning | 0 / 0 of 12 | 4 / 0 | 8 / 0 (all 12 fixed-DF radars recovered) |
+| DFMIX seed 99 (holdout), fixed DF / spinning | 0 / 0 of 12 | 3 / 0 | 8 / 0 |
+
+`CLASSIC_V3=0`: groups identical to the old binary on 720 files (corpus, synth, DFMIX,
+mf6, anurag). Tests: lib 56 -> 59 (+3 DOA tests), unit 80/80, parallel 3/3.
+Speed: corpus one file at a time, median 26.3 -> 29.8 ms per file.
+
+mf6 (unlabeled, spinning DF), DOA arc holding 80 % of a group's pulses:
+| | groups | pulses grouped | median arc | groups > 30 deg (share of pulses) |
+|---|---|---|---|---|
+| v2 | 21 | 13,603 | 17.3 | 4 (19 %) |
+| v3 before | 17 | 20,857 | 35.0 | 10 (73 %) |
+| v3 + DOA gate (default) | 17 | 20,857 | 35.0 | 10 (73 %) |
+| v3 + DOA gate, `CLASSIC_DOA_FIXED_RATE=100000` (treat as fixed DF) | 53 | 20,439 | 12.8 | 6 (6 %) |
+
+Honest reading of mf6: the wide groups are made of *different looks* (never on air at
+the same time). On a spinning DF that is not proof of different radars: the generator
+data shows the same radar on several bearings, and forcing the split there breaks the
+corpus (608 -> 109) and ext (4 -> 1). So by default mf6 is unchanged. If the real
+receiver reports true bearings (no side-lobe looks), `CLASSIC_DOA_FIXED_RATE=100000`
+gives tight groups; that needs a labeled real capture to confirm.
+
+Still open:
+- Spinning DF, same-type radars (DFMIX `dfmixrot`): 0/12 -- bearing cannot be trusted
+  across looks without knowing the receiver. Needs receiver knowledge (true-bearing DF
+  or not) as a setting, or a labeled real capture.
+- Fixed DF: 4/12 DFMIX files still have extra small groups (all radars recovered).
+- The DB path (`ai_processor`) has no `source` column in `FlowPulse`: omni rows from the
+  DB still carry their DOA. Only `classic_eval` blanks them.
