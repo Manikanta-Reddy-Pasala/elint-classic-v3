@@ -1,0 +1,4 @@
+<clickhouse><profiles><default>
+  <allow_experimental_analyzer>0</allow_experimental_analyzer>
+  <precise_float_parsing>1</precise_float_parsing>
+</default></profiles></clickhouse>

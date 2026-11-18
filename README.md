@@ -1,4 +1,4 @@
-> **Classic v3 (2026-11-18):** this copy = the v2 version + classic v3 changes. What changed, engines, results: see `CHANGES_2026-11-18.md`.
+> **Classic v3 (2026-11-18):** this copy = the v2 version + classic v3 changes. What changed, engines, results: see `CHANGES_2026-11-18.md`. How to test: `TESTING.md`.
 
 # ai_elint
 
